@@ -1,0 +1,155 @@
+[project]
+name = "cuere"
+dynamic = ["version"]
+description = "QR codes in your terminal: Unicode half-block rendering, Rich integration, wallet-URI helpers"
+readme = "README.md"
+license = "CC0-1.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.13"
+authors = [{ name = "Ivan Anishchuk", email = "" }]
+keywords = ["qr", "qrcode", "terminal", "tty", "cli", "wallet", "walletconnect"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Terminals",
+    "Topic :: Multimedia :: Graphics",
+    "Typing :: Typed",
+]
+dependencies = [
+    "segno>=1.6.1",
+    "typer>=0.16",
+    "rich>=13.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/IvanAnishchuk/cuere"
+Repository = "https://github.com/IvanAnishchuk/cuere"
+Issues = "https://github.com/IvanAnishchuk/cuere/issues"
+Changelog = "https://github.com/IvanAnishchuk/cuere/blob/main/CHANGELOG.md"
+Security = "https://github.com/IvanAnishchuk/cuere/blob/main/SECURITY.md"
+
+[project.scripts]
+cuere = "cuere.cli:app"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.16",
+    "ty",
+    "pytest>=8.0",
+    "pytest-cov>=6.0",
+    "pip-audit>=2.7",
+    "pre-commit>=4.0",
+    "meson-python>=0.19.0",
+    "meson>=1.11.1",
+    "ninja>=1.13.0",
+    "mypy>=1.14",
+    "basedpyright>=1.39.7",
+    "hypothesis>=6.155.2",
+]
+
+[build-system]
+requires = ["meson-python>=0.19.0"]
+build-backend = "mesonpy"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "B",     # flake8-bugbear
+    "S",     # flake8-bandit (security)
+    "SIM",   # flake8-simplify
+    "BLE",   # flake8-blind-except
+    "TRY",   # tryceratops
+    "TCH",   # flake8-type-checking
+    "RUF",   # ruff-specific
+    "PTH",   # flake8-use-pathlib
+    "ERA",   # eradicate (commented-out code)
+    "PIE",   # flake8-pie
+    "T20",   # flake8-print
+    "C4",    # flake8-comprehensions
+    "PL",    # pylint
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "S101",    # assert is fine in tests
+    "S603",    # subprocess with validated input in fixtures
+    "S607",    # partial executable path in test setup
+    "BLE001",  # broad Exception in test fixtures
+    "T20",     # print is useful in test debugging
+    "PLR2004", # magic values are expected in golden/glyph tests
+]
+
+[tool.ruff.lint.pylint]
+max-args = 8
+max-returns = 8
+max-branches = 15
+max-statements = 60
+
+[tool.ruff.lint.isort]
+known-first-party = ["cuere"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ty.environment]
+python-version = "3.13"
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.basedpyright]
+typeCheckingMode = "recommended"
+# Other settings (pythonVersion, venvPath, venv, extraPaths, include) live in
+# pyrightconfig.json so vanilla pyright (used by IDE/LSP integrations) and
+# basedpyright share one source of truth.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=cuere",
+    "--cov-config=pyproject.toml",
+    "--cov-report=term-missing",
+    "--cov-report=html:.reports/test/htmlcov",
+    "--cov-report=xml:.reports/test/coverage.xml",
+    "--junitxml=.reports/test/test-results.xml",
+    "-ra",
+]
+junit_family = "xunit2"
+junit_logging = "all"
+junit_log_passing_tests = false
+
+[tool.coverage.run]
+source_pkgs = ["cuere"]
+branch = true
+relative_files = true
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+exclude_lines = [
+    "if __name__",
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+]

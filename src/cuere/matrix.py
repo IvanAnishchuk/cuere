@@ -69,6 +69,16 @@ class QRMatrix:
         """Number of rows (== columns for encoded matrices), border included."""
         return len(self.modules)
 
+    @property
+    def height(self) -> int:
+        """Number of module rows."""
+        return len(self.modules)
+
+    @property
+    def width(self) -> int:
+        """Number of module columns."""
+        return len(self.modules[0]) if self.modules else 0
+
     def inverted(self) -> Self:
         """Return a copy with every module flipped."""
         flipped = tuple(tuple(not m for m in row) for row in self.modules)

@@ -7,6 +7,7 @@ from typing import Annotated
 
 import typer
 
+from cuere import __version__
 from cuere.errors import CuereError
 from cuere.matrix import ECLevel
 from cuere.render import RenderMode
@@ -18,8 +19,6 @@ app = typer.Typer(add_completion=False, context_settings={"help_option_names": [
 
 def _version_callback(value: bool) -> None:
     if value:
-        from cuere import __version__
-
         typer.echo(f"cuere {__version__}")
         raise typer.Exit
 
@@ -55,7 +54,7 @@ def main(
     force: Annotated[
         bool, typer.Option("--force", help="Emit ANSI colors even when NO_COLOR/not a tty.")
     ] = False,
-    version: Annotated[
+    _version: Annotated[
         bool,
         typer.Option("--version", callback=_version_callback, is_eager=True),
     ] = False,

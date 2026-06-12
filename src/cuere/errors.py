@@ -14,6 +14,9 @@ class EncodingError(CuereError):
 class WidthError(CuereError):
     """Raised when a rendered QR code does not fit the available width."""
 
+    required: int
+    available: int
+
     def __init__(self, required: int, available: int) -> None:
         super().__init__(f"QR code needs {required} columns but only {available} are available")
         self.required = required

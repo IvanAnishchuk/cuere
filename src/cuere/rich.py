@@ -24,11 +24,15 @@ if TYPE_CHECKING:
 
 # Same polarity as render.ANSI_PREFIX, expressed as a Style so Rich owns the
 # SGR emission (and can strip it for export_text, files, etc.).
-_ANSI_STYLE = Style(color="color(16)", bgcolor="color(231)")
+ANSI_STYLE = Style(color="color(16)", bgcolor="color(231)")
 
 
 class QRCode:
     """A QR code that can be printed, centered, or framed by Rich."""
+
+    matrix: QRMatrix
+    mode: RenderMode
+    invert: bool
 
     def __init__(
         self,
@@ -48,7 +52,7 @@ class QRCode:
         return RenderMode.HALF if self.mode is RenderMode.ANSI else self.mode
 
     def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
-        style = _ANSI_STYLE if self.mode is RenderMode.ANSI else None
+        style = ANSI_STYLE if self.mode is RenderMode.ANSI else None
         text = render_matrix(self.matrix, mode=self._text_mode(), invert=self.invert)
         for line in text.split("\n"):
             yield Segment(line, style)

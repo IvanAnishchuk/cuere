@@ -61,14 +61,14 @@ def render_matrix(
 
 def render_width(matrix: QRMatrix, mode: RenderMode = RenderMode.HALF) -> int:
     """Terminal columns the rendered matrix occupies (ignoring SGR codes)."""
-    return matrix.size * 2 if mode is RenderMode.BLOCK else matrix.size
+    return matrix.width * 2 if mode is RenderMode.BLOCK else matrix.width
 
 
 def render_height(matrix: QRMatrix, mode: RenderMode = RenderMode.HALF) -> int:
     """Terminal rows the rendered matrix occupies."""
     if mode is RenderMode.BLOCK:
-        return matrix.size
-    return (matrix.size + 1) // 2
+        return matrix.height
+    return (matrix.height + 1) // 2
 
 
 def _half_lines(matrix: QRMatrix) -> list[str]:

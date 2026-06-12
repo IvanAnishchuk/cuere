@@ -96,7 +96,8 @@ select = [
 ]
 
 [tool.ruff.lint.pylint]
-max-args = 8
+# show()/the CLI command take many keyword-only rendering options by design.
+max-args = 10
 max-returns = 8
 max-branches = 15
 max-statements = 60

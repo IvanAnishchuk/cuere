@@ -75,11 +75,11 @@ def show(
             raise WidthError(required, available)
         if on_too_wide == "warn":
             warnings.warn(
-                f"QR code needs {required} columns but only {available} are available; "
-                "it will probably not scan",
+                f"QR code needs {required} columns but only {available} are available;"
+                + " it will probably not scan",
                 stacklevel=2,
             )
-    stream.write(render_matrix(matrix, mode=render_mode, invert=invert) + "\n")
+    _ = stream.write(render_matrix(matrix, mode=render_mode, invert=invert) + "\n")
 
 
 def _ansi_ok(stream: IO[str]) -> bool:

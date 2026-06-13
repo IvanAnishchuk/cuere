@@ -216,7 +216,11 @@ def test_ansi_force_overrides_guards() -> None:
 @pytest.mark.usefixtures("color_ok")
 def test_ansi_downgrades_on_stream_without_isatty() -> None:
     out = _WriteOnly()
-    show("HELLO", mode="ansi", out=cast("IO[str]", cast("object", out)), width=100)
+    # Bind through an annotated local: `IO` then appears as a real name in the
+    # AST (CodeQL's py/unused-import only sees the cast's string "IO[str]"
+    # otherwise and wrongly flags the TYPE_CHECKING import as unused).
+    stream: IO[str] = cast("IO[str]", cast("object", out))
+    show("HELLO", mode="ansi", out=stream, width=100)
     assert "\x1b[" not in out.text
 
 

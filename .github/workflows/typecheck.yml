@@ -1,0 +1,62 @@
+name: Type check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: typecheck-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: Type check (${{ matrix.checker }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - checker: mypy
+            command: mypy src/ tests/
+          - checker: ty
+            command: ty check
+          - checker: basedpyright
+            command: basedpyright
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v4.2.0
+        with:
+          enable-cache: true
+
+      - run: uv sync --frozen --dev
+
+      - name: Run ${{ matrix.checker }}
+        # shell: bash enables pipefail so checker failures are not masked by tee.
+        shell: bash
+        run: |
+          mkdir -p .reports/typecheck
+          uv run ${{ matrix.command }} 2>&1 | tee ".reports/typecheck/${{ matrix.checker }}.txt"
+
+      - name: Upload ${{ matrix.checker }} report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: typecheck-${{ matrix.checker }}
+          path: .reports/typecheck/${{ matrix.checker }}.txt
+          include-hidden-files: true
+          retention-days: 14

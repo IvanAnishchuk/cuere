@@ -15,6 +15,7 @@ from cuere.cli import app
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from pathlib import Path
 
 runner = CliRunner()
 
@@ -89,6 +90,32 @@ def test_no_check_width_renders_anyway(fixed_terminal: Callable[[int], None]) ->
 def test_dunder_main_module_imports() -> None:
     module = importlib.import_module("cuere.__main__")
     assert vars(module)["app"] is app
+
+
+def test_input_file(tmp_path: Path) -> None:
+    payload_file = tmp_path / "payload.txt"
+    _ = payload_file.write_text("FROM FILE\n", encoding="utf-8")
+    result = runner.invoke(app, ["--input", str(payload_file)])
+    assert result.exit_code == 0
+    assert result.stdout == render("FROM FILE") + "\n"
+
+
+def test_input_file_missing() -> None:
+    result = runner.invoke(app, ["--input", "/no/such/cuere/file.txt"])
+    assert result.exit_code == 1
+    assert "error:" in result.output
+
+
+def test_micro_flag() -> None:
+    result = runner.invoke(app, ["12345", "--micro"])
+    assert result.exit_code == 0
+    assert result.stdout == render("12345", micro=True) + "\n"
+
+
+def test_boost_error_flag() -> None:
+    result = runner.invoke(app, ["HELLO", "--boost-error"])
+    assert result.exit_code == 0
+    assert result.stdout == render("HELLO", boost_error=True) + "\n"
 
 
 def test_python_dash_m_entry_point() -> None:

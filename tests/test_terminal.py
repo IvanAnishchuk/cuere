@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from typing import IO
 
 HELLO_COLS = 29  # version 1 + 4-module border
+HELLO_ROWS = 15  # ceil(29 / 2) half-block rows
 
 
 class _FakeTty(io.StringIO):
@@ -95,14 +96,27 @@ def test_show_uses_terminal_size_when_width_omitted(
         show("HELLO", out=io.StringIO())
 
 
-def test_fits(fixed_terminal: Callable[[int], None]) -> None:
-    assert fits("HELLO", width=HELLO_COLS)
-    assert not fits("HELLO", width=HELLO_COLS - 1)
-    assert not fits("HELLO", mode="block", width=HELLO_COLS)
-    fixed_terminal(HELLO_COLS)
+def test_fits(fixed_terminal: Callable[..., None]) -> None:
+    assert fits("HELLO", width=HELLO_COLS, height=HELLO_ROWS)
+    assert not fits("HELLO", width=HELLO_COLS - 1, height=HELLO_ROWS)  # too wide
+    assert not fits("HELLO", width=HELLO_COLS, height=HELLO_ROWS - 1)  # too tall
+    assert not fits("HELLO", mode="block", width=HELLO_COLS, height=HELLO_ROWS)
+    fixed_terminal(HELLO_COLS, HELLO_ROWS)
     assert fits("HELLO")
-    fixed_terminal(HELLO_COLS - 1)
+    fixed_terminal(HELLO_COLS - 1, HELLO_ROWS)
     assert not fits("HELLO")
+    fixed_terminal(HELLO_COLS, HELLO_ROWS - 1)
+    assert not fits("HELLO")
+
+
+def test_render_micro_qr() -> None:
+    out = render("12345", micro=True)
+    assert out
+    assert out != render("12345")
+
+
+def test_render_boost_error() -> None:
+    assert render("HI", boost_error=True) != render("HI")
 
 
 # ── ANSI fallback guard ──────────────────────────────────────────

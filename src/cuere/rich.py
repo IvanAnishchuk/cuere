@@ -42,8 +42,10 @@ class QRCode:
         invert: bool = False,
         border: int = 4,
         error: ECLevel | str = ECLevel.L,
+        micro: bool = False,
+        boost_error: bool = False,
     ) -> None:
-        self.matrix = coerce(data, border=border, error=error)
+        self.matrix = coerce(data, border=border, error=error, micro=micro, boost_error=boost_error)
         self.mode = coerce_mode(mode)
         self.invert = invert
 

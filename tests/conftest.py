@@ -18,7 +18,7 @@ settings.load_profile(os.environ.get("HYPOTHESIS_PROFILE", "dev"))
 
 
 @pytest.fixture
-def fixed_terminal(monkeypatch: pytest.MonkeyPatch) -> Callable[[int], None]:
+def fixed_terminal(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """Pin the terminal size reported to cuere.terminal."""
 
     def _set(columns: int, lines: int = 50) -> None:

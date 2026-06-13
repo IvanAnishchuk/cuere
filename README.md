@@ -65,11 +65,24 @@ from cuere import optimize_uri
 optimize_uri("bitcoin:bc1q...")  # -> "BITCOIN:BC1Q..."
 ```
 
+Need the raw module grid (to render it yourself or inspect it)? Encode to a
+`QRMatrix`:
+
+```python
+from cuere import QRMatrix
+
+m = QRMatrix.encode("HELLO", error="L", border=4)
+m.modules   # tuple[tuple[bool, ...], ...] — True is a dark module
+m.size      # side length, quiet zone included
+```
+
 CLI:
 
 ```bash
 cuere "wc:...your walletconnect uri..."
 echo "some payload" | cuere
+cuere --input payload.txt              # read the payload from a file
+cuere 12345 --micro                    # compact Micro QR for a tiny payload
 cuere HELLO --mode ansi --invert --border 2 --error M
 ```
 
@@ -80,6 +93,10 @@ cuere HELLO --mode ansi --invert --border 2 --error M
 | `half` (default) | ½ character (`▀▄█`) | 33 cols | survives copy-paste; inherits terminal colors |
 | `ansi` | ½ character, forced black-on-white | 33 cols | theme-proof; falls back to `half` when piped or `NO_COLOR` is set |
 | `block` | 2 characters (`██`) | 66 cols | most font-robust, twice as wide |
+
+The block-drawing glyphs (`█▀▄`) are East-Asian *Ambiguous* width: a terminal
+configured to render those double-width will widen the output, so the column
+counts above assume standard single-width rendering.
 
 ### Scanning notes
 

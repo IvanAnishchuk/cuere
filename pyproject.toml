@@ -100,14 +100,20 @@ select = [
 ]
 
 [tool.ruff.lint.pylint]
-# show()/the CLI command take many keyword-only rendering options by design.
-max-args = 10
+# show()/the CLI command expose many keyword-only rendering options by design.
+max-args = 12
 max-returns = 8
 max-branches = 15
 max-statements = 60
 
 [tool.ruff.lint.isort]
 known-first-party = ["cuere"]
+
+[tool.ruff.lint.flake8-type-checking]
+# typer resolves command-function annotations at runtime (get_type_hints), so
+# their imports (e.g. pathlib.Path) must stay at module scope, not be moved
+# into a TYPE_CHECKING block.
+runtime-evaluated-decorators = ["typer.Typer.command"]
 
 [tool.ruff.format]
 quote-style = "double"

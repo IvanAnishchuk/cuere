@@ -12,16 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `QRMatrix` encoding layer over segno (error level `L` by default, no
-  error-boost, quiet zone baked in).
+  error-boost, quiet zone baked in); its `.modules` grid is the public
+  raw-matrix accessor.
 - Renderers: `half` (Claude-Code-style Unicode half-blocks), `block`
   (double-width full blocks), `ansi` (forced black-on-white colors).
-- High-level `render()` / `show()` / `fits()` with terminal-width checking
-  and `NO_COLOR`/tty-aware ANSI fallback.
+- High-level `render()` / `show()` / `fits()` with optional Micro QR and
+  error-boost, terminal width/height fit checks, and `NO_COLOR`/tty-aware
+  ANSI fallback.
 - Rich renderable `cuere.rich.QRCode` with exact measurement.
 - `optimize_uri()` — lossless uppercase optimization for fully-lowercase
   `bitcoin:`/`lightning:` (bech32) wallet URIs to reach QR alphanumeric mode.
-- typer CLI: `cuere [DATA]` with `--mode`, `--invert`, `--border`,
-  `--error`, `--optimize-uri`, `--check-width/--no-check-width`, `--force`.
+- typer CLI: `cuere [DATA | --input FILE]` with `--mode`, `--invert`,
+  `--border`, `--error`, `--micro`, `--boost-error`, `--optimize-uri`,
+  `--check-width/--no-check-width`, `--force`.
 - `AGENTS.md` and `.github/copilot-instructions.md` with project conventions
   and review guidelines for AI review agents (Codex, GitHub Copilot).
 

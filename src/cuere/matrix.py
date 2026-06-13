@@ -90,8 +90,14 @@ def coerce(
     *,
     border: int = 4,
     error: ECLevel | str = ECLevel.L,
+    micro: bool = False,
+    boost_error: bool = False,
 ) -> QRMatrix:
-    """Return ``data`` as a :class:`QRMatrix`, encoding str/bytes input."""
+    """Return ``data`` as a :class:`QRMatrix`, encoding str/bytes input.
+
+    ``micro`` and ``boost_error`` apply only when ``data`` is encoded; a
+    pre-built :class:`QRMatrix` is returned unchanged.
+    """
     if isinstance(data, QRMatrix):
         return data
-    return QRMatrix.encode(data, error=error, border=border)
+    return QRMatrix.encode(data, error=error, border=border, micro=micro, boost_error=boost_error)

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Literal
 
 from cuere.errors import WidthError
 from cuere.matrix import ECLevel, QRMatrix, coerce
-from cuere.render import RenderMode, coerce_mode, render_matrix, render_width
+from cuere.render import RenderMode, coerce_mode, render_height, render_matrix, render_width
 
 if TYPE_CHECKING:
     from typing import IO
@@ -25,9 +25,11 @@ def render(
     invert: bool = False,
     border: int = 4,
     error: ECLevel | str = ECLevel.L,
+    micro: bool = False,
+    boost_error: bool = False,
 ) -> str:
     """Encode ``data`` (unless it is already a :class:`QRMatrix`) and render it."""
-    matrix = coerce(data, border=border, error=error)
+    matrix = coerce(data, border=border, error=error, micro=micro, boost_error=boost_error)
     return render_matrix(matrix, mode=coerce_mode(mode), invert=invert)
 
 
@@ -37,12 +39,23 @@ def fits(
     mode: RenderMode | str = RenderMode.HALF,
     border: int = 4,
     error: ECLevel | str = ECLevel.L,
+    micro: bool = False,
+    boost_error: bool = False,
     width: int | None = None,
+    height: int | None = None,
 ) -> bool:
-    """Whether the rendered code fits in ``width`` (default: current terminal)."""
-    matrix = coerce(data, border=border, error=error)
-    available = width if width is not None else shutil.get_terminal_size().columns
-    return render_width(matrix, coerce_mode(mode)) <= available
+    """Whether the rendered code fits the terminal in both dimensions.
+
+    Width is the hard constraint (wrapping destroys a scan); height is checked
+    too because a code taller than the screen scrolls out of view. ``width``
+    and ``height`` default to the current terminal size.
+    """
+    matrix = coerce(data, border=border, error=error, micro=micro, boost_error=boost_error)
+    render_mode = coerce_mode(mode)
+    size = shutil.get_terminal_size()
+    cols = width if width is not None else size.columns
+    rows = height if height is not None else size.lines
+    return render_width(matrix, render_mode) <= cols and render_height(matrix, render_mode) <= rows
 
 
 def show(
@@ -52,6 +65,8 @@ def show(
     invert: bool = False,
     border: int = 4,
     error: ECLevel | str = ECLevel.L,
+    micro: bool = False,
+    boost_error: bool = False,
     out: IO[str] | None = None,
     width: int | None = None,
     on_too_wide: OnTooWide = "error",
@@ -59,12 +74,16 @@ def show(
 ) -> None:
     """Render ``data`` and write it to ``out`` (default ``sys.stdout``).
 
+    The fit check is width-only: wrapping destroys a code, but a code taller
+    than the terminal merely scrolls and stays scannable, so height is not
+    gated here (use :func:`fits` for a height-aware predicate).
+
     ANSI mode silently falls back to HALF when ``NO_COLOR`` is set or the
     stream is not a tty, unless ``force=True``: raw SGR codes in logs or
     pipelines are worse than a theme-dependent code.
     """
     stream = out if out is not None else sys.stdout
-    matrix = coerce(data, border=border, error=error)
+    matrix = coerce(data, border=border, error=error, micro=micro, boost_error=boost_error)
     render_mode = coerce_mode(mode)
     if render_mode is RenderMode.ANSI and not force and not _ansi_ok(stream):
         render_mode = RenderMode.HALF

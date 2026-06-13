@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `AGENTS.md` and `.github/copilot-instructions.md` with project conventions
+  and review guidelines for AI review agents (Codex, GitHub Copilot).
+
 ### Changed
 
 - `NO_COLOR` now disables ANSI output whenever the variable is present,

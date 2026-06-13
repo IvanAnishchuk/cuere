@@ -15,11 +15,57 @@ permissions: {}
 
 jobs:
   # -------------------------------------------------------------------
+  # Decide where (if anywhere) to publish from the event and tag, using
+  # ANCHORED version matching so incidental letters in a tag or branch
+  # name (e.g. "main" contains "a") can never misroute.
+  # -------------------------------------------------------------------
+  classify:
+    name: Classify release target
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      target: ${{ steps.c.outputs.target }}
+      prerelease: ${{ steps.c.outputs.prerelease }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+      - name: Determine publish target
+        id: c
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          TESTPYPI: ${{ inputs.testpypi }}
+        run: |
+          target=none
+          prerelease=false
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            if [ "$TESTPYPI" = "true" ]; then target=testpypi; prerelease=true; fi
+          elif [ "$EVENT" = "push" ]; then
+            ver="${REF_NAME#v}"
+            if printf '%s' "$ver" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              target=pypi
+            elif printf '%s' "$ver" | grep -qiE '^[0-9]+\.[0-9]+\.[0-9]+(\.?(a|b|c|rc|alpha|beta|dev)[0-9]*)+$'; then
+              target=testpypi
+              prerelease=true
+            fi
+          fi
+          {
+            echo "target=$target"
+            echo "prerelease=$prerelease"
+          } >> "$GITHUB_OUTPUT"
+          echo "event=$EVENT ref=$REF_NAME -> target=$target prerelease=$prerelease"
+
+  # -------------------------------------------------------------------
   # Build wheel + sdist with reproducible settings, generate SBOM,
   # attest provenance, and sign with sigstore.
   # -------------------------------------------------------------------
   build:
     name: Build & attest
+    needs: classify
+    if: needs.classify.outputs.target != 'none'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -131,14 +177,8 @@ jobs:
   # -------------------------------------------------------------------
   publish-pypi:
     name: Publish to PyPI
-    needs: build
-    if: >-
-      github.event_name == 'push'
-      && startsWith(github.ref, 'refs/tags/v')
-      && !contains(github.ref_name, 'dev')
-      && !contains(github.ref_name, 'a')
-      && !contains(github.ref_name, 'b')
-      && !contains(github.ref_name, 'c')
+    needs: [classify, build]
+    if: needs.classify.outputs.target == 'pypi'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
@@ -176,12 +216,8 @@ jobs:
   # -------------------------------------------------------------------
   publish-testpypi:
     name: Publish to TestPyPI
-    needs: build
-    if: >-
-      (github.event_name == 'workflow_dispatch' && inputs.testpypi)
-      || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-          && (contains(github.ref_name, 'dev') || contains(github.ref_name, 'a')
-              || contains(github.ref_name, 'b') || contains(github.ref_name, 'c')))
+    needs: [classify, build]
+    if: needs.classify.outputs.target == 'testpypi'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
@@ -220,7 +256,7 @@ jobs:
   # -------------------------------------------------------------------
   github-release:
     name: Create GitHub Release
-    needs: [build, provenance, publish-pypi, publish-testpypi]
+    needs: [classify, build, provenance, publish-pypi, publish-testpypi]
     if: >-
       always()
       && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -275,7 +311,7 @@ jobs:
           name: "${{ github.event.repository.name }} ${{ steps.notes.outputs.version }}"
           body_path: release-notes.md
           draft: true
-          prerelease: ${{ contains(github.ref_name, 'dev') || contains(github.ref_name, 'a') || contains(github.ref_name, 'b') || contains(github.ref_name, 'c') }}
+          prerelease: ${{ needs.classify.outputs.prerelease == 'true' }}
           generate_release_notes: true
           files: |
             release-dist/*.whl

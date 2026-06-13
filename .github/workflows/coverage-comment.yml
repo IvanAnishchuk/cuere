@@ -19,10 +19,11 @@ jobs:
   coverage:
     name: Coverage comment + badge
     runs-on: ubuntu-latest
-    # Same-repo runs only: a fork PR must not reach this privileged
-    # (contents/pull-requests: write) job with attacker-influenced artifacts.
+    # Same-repo pull-request runs only: skip push-to-main (no PR to comment
+    # on) and fork PRs (which must not reach this privileged write job).
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     timeout-minutes: 5
     permissions:

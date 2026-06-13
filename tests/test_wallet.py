@@ -1,7 +1,5 @@
 """Tests pinning the optimize_uri contract."""
 
-from __future__ import annotations
-
 from hypothesis import given
 from hypothesis import strategies as st
 

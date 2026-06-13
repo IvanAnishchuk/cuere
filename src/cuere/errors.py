@@ -1,7 +1,5 @@
 """Exception hierarchy for cuere."""
 
-from __future__ import annotations
-
 
 class CuereError(Exception):
     """Base class for all cuere errors."""

@@ -1,7 +1,5 @@
 """Property-based round-trip tests for the renderers."""
 
-from __future__ import annotations
-
 import re
 
 from hypothesis import given

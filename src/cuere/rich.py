@@ -8,19 +8,13 @@ Usage::
     Console().print(QRCode("wc:..."), justify="center")
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
+from rich.console import Console, ConsoleOptions, RenderResult
 from rich.measure import Measurement
 from rich.segment import Segment
 from rich.style import Style
 
 from cuere.matrix import ECLevel, QRMatrix, coerce
 from cuere.render import RenderMode, coerce_mode, render_matrix, render_width
-
-if TYPE_CHECKING:
-    from rich.console import Console, ConsoleOptions, RenderResult
 
 # Same polarity as render.ANSI_PREFIX, expressed as a Style so Rich owns the
 # SGR emission (and can strip it for export_text, files, etc.).

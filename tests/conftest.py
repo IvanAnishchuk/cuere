@@ -1,16 +1,11 @@
 """Shared fixtures and hypothesis profiles."""
 
-from __future__ import annotations
-
 import os
 import shutil
-from typing import TYPE_CHECKING
+from collections.abc import Callable
 
 import pytest
 from hypothesis import Phase, settings
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 settings.register_profile("ci", max_examples=200)
 settings.register_profile("dev", max_examples=50)

@@ -4,8 +4,6 @@
 so these pin the inferred types of the public surface against accidental drift.
 """
 
-from __future__ import annotations
-
 import io
 from typing import assert_type
 

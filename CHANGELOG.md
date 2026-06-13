@@ -33,6 +33,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Contributor governance: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue
   templates (bug / feature / question) and a pull-request template.
 
+### Changed
+
+- Dropped `from __future__ import annotations` and the `if TYPE_CHECKING:`
+  gating of cheap stdlib/intra-package imports — those are now plain runtime
+  imports. Removed the `flake8-type-checking` (`TCH`) ruff ruleset, which had
+  been mechanically forcing both patterns plus quoted `typing.cast` types. The
+  lazy import of `rich`/`typer` is unaffected (still enforced by `cuere/__init__`
+  not importing them, guarded by a test).
+
 ### Fixed
 
 - Corrected mismatched action version comments (e.g. `setup-uv` was labelled

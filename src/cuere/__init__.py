@@ -5,8 +5,6 @@ remote-connection codes), a Rich renderable, and helpers for crypto-wallet
 URIs.
 """
 
-from __future__ import annotations
-
 import importlib.metadata
 
 from cuere.errors import CuereError, EncodingError, WidthError

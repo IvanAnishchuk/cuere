@@ -1,17 +1,12 @@
 """Tests for the high-level render/show/fits API."""
 
-from __future__ import annotations
-
 import io
-from typing import TYPE_CHECKING, cast, override
+from collections.abc import Callable
+from typing import IO, cast, override
 
 import pytest
 
 from cuere import CuereError, QRMatrix, RenderMode, WidthError, fits, render, show
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import IO
 
 HELLO_COLS = 29  # version 1 + 4-module border
 HELLO_ROWS = 15  # ceil(29 / 2) half-block rows
@@ -216,11 +211,7 @@ def test_ansi_force_overrides_guards() -> None:
 @pytest.mark.usefixtures("color_ok")
 def test_ansi_downgrades_on_stream_without_isatty() -> None:
     out = _WriteOnly()
-    # Bind through an annotated local: `IO` then appears as a real name in the
-    # AST (CodeQL's py/unused-import only sees the cast's string "IO[str]"
-    # otherwise and wrongly flags the TYPE_CHECKING import as unused).
-    stream: IO[str] = cast("IO[str]", cast("object", out))
-    show("HELLO", mode="ansi", out=stream, width=100)
+    show("HELLO", mode="ansi", out=cast(IO[str], cast(object, out)), width=100)
     assert "\x1b[" not in out.text
 
 

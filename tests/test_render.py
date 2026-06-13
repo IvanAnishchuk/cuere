@@ -1,7 +1,5 @@
 """Glyph-level and golden-output tests for the renderers."""
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest

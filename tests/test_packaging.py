@@ -4,8 +4,6 @@ Meson only ships files listed in py.install_sources; a new module that is
 not added to src/cuere/meson.build silently disappears from wheels.
 """
 
-from __future__ import annotations
-
 import re
 from pathlib import Path
 

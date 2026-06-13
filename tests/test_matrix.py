@@ -69,6 +69,14 @@ def test_negative_border_raises_encoding_error() -> None:
         _ = QRMatrix.encode("HELLO", border=-1)
 
 
+def test_boost_error_can_change_the_matrix() -> None:
+    # boost_error=False is the deliberate default (smallest code on screen);
+    # boosting raises the EC level when there is spare capacity.
+    plain = QRMatrix.encode("HI", boost_error=False)
+    boosted = QRMatrix.encode("HI", boost_error=True)
+    assert plain.modules != boosted.modules
+
+
 def test_inverted_is_an_involution() -> None:
     matrix = QRMatrix.encode("HELLO")
     assert matrix.inverted() != matrix

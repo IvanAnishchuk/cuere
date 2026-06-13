@@ -10,6 +10,8 @@ from __future__ import annotations
 import enum
 from typing import TYPE_CHECKING
 
+from cuere.errors import CuereError
+
 if TYPE_CHECKING:
     from cuere.matrix import QRMatrix
 
@@ -34,6 +36,19 @@ class RenderMode(enum.StrEnum):
     """Two full-width chars per module: most robust glyphs, twice as wide."""
     ANSI = "ansi"
     """HALF glyphs with forced black-on-white SGR colors: theme-proof."""
+
+
+def coerce_mode(mode: RenderMode | str) -> RenderMode:
+    """Convert a mode name to :class:`RenderMode`, raising on an unknown value.
+
+    Keeps the public API's error contract consistent: an invalid ``mode``
+    raises :class:`~cuere.errors.CuereError`, just like an invalid ``error``
+    level or ``border`` does, rather than a bare ``ValueError``.
+    """
+    try:
+        return RenderMode(mode)
+    except ValueError as exc:  # e.g. "'sixel' is not a valid RenderMode"
+        raise CuereError(str(exc)) from exc
 
 
 def render_matrix(

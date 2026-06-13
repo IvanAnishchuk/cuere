@@ -17,7 +17,7 @@ from rich.segment import Segment
 from rich.style import Style
 
 from cuere.matrix import ECLevel, QRMatrix, coerce
-from cuere.render import RenderMode, render_matrix, render_width
+from cuere.render import RenderMode, coerce_mode, render_matrix, render_width
 
 if TYPE_CHECKING:
     from rich.console import Console, ConsoleOptions, RenderResult
@@ -44,7 +44,7 @@ class QRCode:
         error: ECLevel | str = ECLevel.L,
     ) -> None:
         self.matrix = coerce(data, border=border, error=error)
-        self.mode = RenderMode(mode)
+        self.mode = coerce_mode(mode)
         self.invert = invert
 
     def _text_mode(self) -> RenderMode:

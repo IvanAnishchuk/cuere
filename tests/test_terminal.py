@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, cast, override
 
 import pytest
 
-from cuere import QRMatrix, RenderMode, WidthError, fits, render, show
+from cuere import CuereError, QRMatrix, RenderMode, WidthError, fits, render, show
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -44,6 +44,11 @@ def test_render_accepts_str_bytes_and_matrix() -> None:
 
 def test_render_accepts_mode_strings() -> None:
     assert render("HELLO", mode="block") == render("HELLO", mode=RenderMode.BLOCK)
+
+
+def test_unknown_mode_raises_cuere_error() -> None:
+    with pytest.raises(CuereError):
+        _ = render("HELLO", mode="sixel")
 
 
 def test_show_writes_render_plus_newline() -> None:

@@ -46,6 +46,11 @@ def test_lightning_invoice_is_uppercased() -> None:
     assert optimize_uri(uri) == uri.upper()
 
 
+def test_scheme_without_colon_is_untouched() -> None:
+    # A bare word (no ":") is not a URI we recognize; leave it alone.
+    assert optimize_uri("bitcoin") == "bitcoin"
+
+
 def test_optimized_uri_never_grows_the_qr() -> None:
     for uri in (BECH32_URI, TAPROOT_URI, BASE58_URI, WC_URI):
         original = QRMatrix.encode(uri)

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Literal
 
 from cuere.errors import WidthError
 from cuere.matrix import ECLevel, QRMatrix, coerce
-from cuere.render import RenderMode, render_matrix, render_width
+from cuere.render import RenderMode, coerce_mode, render_matrix, render_width
 
 if TYPE_CHECKING:
     from typing import IO
@@ -28,7 +28,7 @@ def render(
 ) -> str:
     """Encode ``data`` (unless it is already a :class:`QRMatrix`) and render it."""
     matrix = coerce(data, border=border, error=error)
-    return render_matrix(matrix, mode=RenderMode(mode), invert=invert)
+    return render_matrix(matrix, mode=coerce_mode(mode), invert=invert)
 
 
 def fits(
@@ -42,7 +42,7 @@ def fits(
     """Whether the rendered code fits in ``width`` (default: current terminal)."""
     matrix = coerce(data, border=border, error=error)
     available = width if width is not None else shutil.get_terminal_size().columns
-    return render_width(matrix, RenderMode(mode)) <= available
+    return render_width(matrix, coerce_mode(mode)) <= available
 
 
 def show(
@@ -65,7 +65,7 @@ def show(
     """
     stream = out if out is not None else sys.stdout
     matrix = coerce(data, border=border, error=error)
-    render_mode = RenderMode(mode)
+    render_mode = coerce_mode(mode)
     if render_mode is RenderMode.ANSI and not force and not _ansi_ok(stream):
         render_mode = RenderMode.HALF
     required = render_width(matrix, render_mode)

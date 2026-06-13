@@ -33,8 +33,8 @@ def optimize_uri(uri: str) -> str:
     the uppercased form is fully QR-alphanumeric. Idempotent; returns the
     input unchanged in every other case.
     """
-    scheme = uri.partition(":")[0].lower()
-    if scheme not in _CASE_INSENSITIVE_SCHEMES:
+    scheme, sep, _ = uri.partition(":")
+    if not sep or scheme.lower() not in _CASE_INSENSITIVE_SCHEMES:
         return uri
     if uri != uri.lower():
         return uri

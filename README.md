@@ -1,5 +1,6 @@
 # cuere
 
+[![PyPI](https://img.shields.io/pypi/v/cuere)](https://pypi.org/project/cuere/)
 [![test](https://github.com/IvanAnishchuk/cuere/actions/workflows/test.yml/badge.svg)](https://github.com/IvanAnishchuk/cuere/actions/workflows/test.yml)
 [![lint](https://github.com/IvanAnishchuk/cuere/actions/workflows/lint.yml/badge.svg)](https://github.com/IvanAnishchuk/cuere/actions/workflows/lint.yml)
 [![typecheck](https://github.com/IvanAnishchuk/cuere/actions/workflows/typecheck.yml/badge.svg)](https://github.com/IvanAnishchuk/cuere/actions/workflows/typecheck.yml)

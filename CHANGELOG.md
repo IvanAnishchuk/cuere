@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   protection on `main`, and the PyPI/TestPyPI environments — as code.
 - `.github/CODEOWNERS`.
 - gitleaks now uploads its SARIF to code scanning.
+- `.well-known/security.txt` (RFC 9116) — machine-readable security contact.
 
 ### Fixed
 

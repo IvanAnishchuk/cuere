@@ -7,14 +7,26 @@ import shutil
 from typing import TYPE_CHECKING
 
 import pytest
-from hypothesis import settings
+from hypothesis import Phase, settings
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 settings.register_profile("ci", max_examples=200)
 settings.register_profile("dev", max_examples=50)
-settings.load_profile(os.environ.get("HYPOTHESIS_PROFILE", "dev"))
+# Under mutmut (it sets MUTANT_UNDER_TEST), a failing example already means the
+# mutant is caught, so skip the shrink phase: shrinking a failure is pure
+# overhead here and can overrun mutmut's per-mutant timeout, turning a clean
+# kill into a flaky ⏰ timeout. Detection (generation) is unaffected.
+settings.register_profile(
+    "mutmut",
+    max_examples=50,
+    phases=(Phase.explicit, Phase.reuse, Phase.generate, Phase.target),
+    deadline=None,
+)
+_under_mutmut = bool(os.environ.get("MUTANT_UNDER_TEST"))
+_profile = "mutmut" if _under_mutmut else os.environ.get("HYPOTHESIS_PROFILE", "dev")
+settings.load_profile(_profile)
 
 
 @pytest.fixture

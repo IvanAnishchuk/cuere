@@ -52,6 +52,7 @@ dev = [
     "basedpyright>=1.39.7",
     "hypothesis>=6.155.2",
     "zizmor>=1.25",
+    "mutmut>=3.5",
 ]
 
 [build-system]
@@ -128,6 +129,7 @@ python_version = "3.13"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+warn_unreachable = true
 
 [tool.basedpyright]
 typeCheckingMode = "recommended"
@@ -164,4 +166,30 @@ exclude_lines = [
     "if __name__",
     "pragma: no cover",
     "if TYPE_CHECKING:",
+]
+
+[tool.mutmut]
+# Mutation testing — run locally (`uv run mutmut run`), NOT in CI.
+# See docs/mutation-testing.md for the workflow and accepted equivalent mutants.
+source_paths = ["src/cuere/"]
+pytest_add_cli_args_test_selection = ["tests/"]
+# Root files needed in mutmut's sandbox copy: test_packaging.py reads
+# meson.build/pyproject.toml, conftest.py puts the mutated src/ on sys.path,
+# and mutmut-mypy.ini is the relaxed config for the type-check pass below.
+also_copy = ["meson.build", "pyproject.toml", "conftest.py", "mutmut-mypy.ini"]
+# Type-check pass: mypy runs over the whole mutant tree first; any mutant that
+# introduces a type error (e.g. passing None to a typed parameter) is "caught"
+# (🧙) and skipped from the test run. Uses a relaxed config (mutmut-mypy.ini),
+# not the project's strict one, to ignore mutmut's own scaffolding. JSON output
+# is required by mutmut's parser. See docs/mutation-testing.md.
+type_check_command = ["mypy", "--output=json", "--config-file=mutmut-mypy.ini", "src/cuere/"]
+# Clear cuere's coverage/junit addopts; mutmut handles its own isolation.
+# Deselect 3 install-dependent tests (subprocess imports + dist metadata) that
+# can't pass when the project is run uninstalled, as mutmut requires here.
+pytest_add_cli_args = [
+    "--no-cov",
+    "--override-ini=addopts=",
+    "--deselect=tests/test_cli.py::test_python_dash_m_entry_point",
+    "--deselect=tests/test_init.py::test_version_is_resolved",
+    "--deselect=tests/test_rich.py::test_importing_cuere_does_not_import_rich_or_typer",
 ]

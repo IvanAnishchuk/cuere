@@ -48,7 +48,8 @@ def test_render_accepts_mode_strings() -> None:
 
 
 def test_unknown_mode_raises_cuere_error() -> None:
-    with pytest.raises(CuereError):
+    # The error names the offending mode, not a bare "invalid value".
+    with pytest.raises(CuereError, match="sixel"):
         _ = render("HELLO", mode="sixel")
 
 
@@ -72,14 +73,37 @@ def test_show_raises_width_error_with_fields() -> None:
         show("HELLO", out=out, width=10)
     assert excinfo.value.required == HELLO_COLS
     assert excinfo.value.available == 10
+    # The human-readable message is part of the contract (and is mirrored by the
+    # "warn" path below), so pin it exactly.
+    assert str(excinfo.value) == f"QR code needs {HELLO_COLS} columns but only 10 are available"
     assert out.getvalue() == ""
 
 
 def test_show_warn_mode_renders_anyway() -> None:
     out = io.StringIO()
-    with pytest.warns(UserWarning, match="probably not scan"):
+    with pytest.warns(UserWarning) as record:
         show("HELLO", out=out, width=10, on_too_wide="warn")
+    # Same wording as WidthError, plus the scan caveat — pin it exactly.
+    assert str(record[0].message) == (
+        f"QR code needs {HELLO_COLS} columns but only 10 are available; it will probably not scan"
+    )
     assert out.getvalue() == render("HELLO") + "\n"
+
+
+def test_show_renders_at_exact_fit() -> None:
+    # A code exactly as wide as the terminal still fits — the guard is strict ">".
+    out = io.StringIO()
+    show("HELLO", out=out, width=HELLO_COLS)
+    assert out.getvalue() == render("HELLO") + "\n"
+
+
+def test_show_width_check_respects_block_mode() -> None:
+    # BLOCK doubles the width, so the fit guard must measure the active mode:
+    # HELLO is 29 cols in half mode but 58 in block mode.
+    out = io.StringIO()
+    with pytest.raises(WidthError):
+        show("HELLO", mode="block", out=out, width=40)
+    assert out.getvalue() == ""
 
 
 def test_show_render_mode_is_silent() -> None:
@@ -109,6 +133,26 @@ def test_fits(fixed_terminal: Callable[..., None]) -> None:
     assert not fits("HELLO")
 
 
+def test_fits_honors_size_affecting_options() -> None:
+    # border, error level, and micro each change the module count, so fits must
+    # encode with them rather than measuring a default-encoded code.
+    assert fits("HELLO", border=0, width=21, height=50)
+    assert not fits("HELLO", width=21, height=50)  # default border 4 -> 29 cols
+    assert fits("12345", micro=True, width=21, height=50)
+    assert not fits("12345", width=21, height=50)  # full QR -> 29 cols
+    assert fits("HELLO WORLD 1234567890", error="L", width=33, height=50)
+    assert not fits("HELLO WORLD 1234567890", error="H", width=33, height=50)  # H -> 37 cols
+
+
+def test_fits_accounts_for_block_mode_dimensions() -> None:
+    # BLOCK is twice as wide and full height. Each assertion isolates one
+    # dimension (the other is given plenty of room) so a mode-blind width or
+    # height check would wrongly report a fit.
+    assert not fits("HELLO", mode="block", width=40, height=100)  # block width 58 > 40
+    assert not fits("HELLO", mode="block", width=100, height=20)  # block height 29 > 20
+    assert fits("HELLO", mode="block", width=58, height=29)  # exact block fit
+
+
 def test_render_micro_qr() -> None:
     out = render("12345", micro=True)
     assert out
@@ -117,6 +161,16 @@ def test_render_micro_qr() -> None:
 
 def test_render_boost_error() -> None:
     assert render("HI", boost_error=True) != render("HI")
+
+
+def test_render_error_level_reaches_encoder() -> None:
+    # A higher error-correction level changes the module pattern.
+    assert render("HELLO", error="H") != render("HELLO")
+
+
+def test_render_border_reaches_encoder() -> None:
+    # The quiet-zone width is forwarded to the encoder.
+    assert render("HELLO", border=0) != render("HELLO")
 
 
 # ── ANSI fallback guard ──────────────────────────────────────────

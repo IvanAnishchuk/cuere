@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Mutation testing with `mutmut` (dev dependency, run locally — not in CI),
+  configured in `pyproject.toml` and documented in `docs/mutation-testing.md`,
+  with the set of accepted equivalent mutants recorded there. Includes a mypy
+  type-check pass (`mutmut-mypy.ini`) that catches type-error mutants without a
+  runtime test, and a no-shrink hypothesis profile for deterministic runs.
+- Behavioral regression tests closing the gaps mutation testing surfaced:
+  exact error/warning messages (`WidthError`, invalid render mode), encode-option
+  pass-through in `render`/`fits`/`rich.QRCode`, block-mode width/height in
+  `fits`/`show`/`QRCode.__rich_measure__`, the `show` exact-fit boundary,
+  per-row Rich segments, and first-colon URI scheme parsing in `optimize_uri`.
+- `tests/test_types.py`: `assert_type` regression tests pinning the inferred
+  types of the public API.
 - `zizmor` GitHub Actions security audit: dev dependency, a local pre-commit
   hook (offline), and a CI workflow running online audits with SARIF upload to
   code scanning.

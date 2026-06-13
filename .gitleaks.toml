@@ -1,22 +1,18 @@
 # gitleaks configuration for cuere.
 #
-# The test suite embeds an example WalletConnect `wc:` URI whose `symKey`
-# is 64 hex chars — a fabricated test vector, not a real secret, but its
-# entropy trips the default generic-api-key rule. Allowlist that exact
-# shape, scoped to test files (path AND regex must both match) so it can
-# never mask a real secret elsewhere. Every other default rule stays active.
+# tests/test_render.py embeds an example WalletConnect `wc:` URI whose
+# `symKey` is 64 hex chars — a fabricated test vector, not a real secret,
+# but its entropy trips the default generic-api-key rule. Allowlist that
+# one test file only (scoped by path, NOT a global regex), so secrets in
+# src/, workflows, or any other file are still caught. Every default rule
+# stays active everywhere else.
 title = "cuere"
 
 [extend]
 useDefault = true
 
-[[allowlists]]
-description = "Fabricated wallet-URI test vectors are not real secrets"
-condition = "AND"
+[allowlist]
+description = "Fabricated WalletConnect symKey test vector lives in this file"
 paths = [
-  '''tests/.*''',
-]
-regexTarget = "line"
-regexes = [
-  '''symKey=[0-9a-fA-F]{40,}''',
+  '''tests/test_render\.py''',
 ]

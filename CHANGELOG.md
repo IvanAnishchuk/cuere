@@ -26,8 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OSV-Scanner findings now fail CI (removed `continue-on-error`).
 - The coverage-comment `workflow_run` job is restricted to same-repository
   runs so fork PRs cannot reach it with write permissions.
-- Scoped the gitleaks allowlist to test paths (path + regex) so the
-  wallet-URI exception cannot mask secrets elsewhere.
+- Scoped the gitleaks allowlist to the single test file holding the
+  fabricated wallet-URI vector, so it cannot mask secrets elsewhere
+  (verified: a same-shape secret outside that file is still flagged).
 - `scripts/audit.py` subprocess calls now have a timeout so a hung tool
   cannot stall CI or pre-push indefinitely.
 

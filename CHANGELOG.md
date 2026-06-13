@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The release SBOM now excludes dev dependencies (`uv export --no-dev`), so it
   describes only the published package's runtime dependencies.
 - Renamed `LICENSE` to `LICENSE.md`.
+- `optimize_uri()` now only uppercases known case-insensitive schemes
+  (`bitcoin:`, `lightning:`); other schemes such as `ethereum:` are returned
+  unchanged even when fully lowercase, avoiding corruption of case-significant
+  payloads.
 
 ### Fixed
 

@@ -52,10 +52,11 @@ from cuere.rich import QRCode
 Console().print(Panel(QRCode("bitcoin:BC1Q..."), title="scan to pay"), justify="center")
 ```
 
-Wallet URIs — `optimize_uri()` uppercases a **fully lowercase** bech32-style
-URI so it encodes in QR alphanumeric mode (a smaller code; BIP-173/BIP-21 are
-case-insensitive, so this is lossless). Mixed-case URIs, or those with
-non-alphanumeric query parts, are returned unchanged:
+Wallet URIs — `optimize_uri()` uppercases a fully lowercase `bitcoin:` or
+`lightning:` URI (bech32 is case-insensitive per BIP-173) so it encodes in QR
+alphanumeric mode, yielding a smaller code. Other schemes (e.g. `ethereum:`,
+whose EIP-55 checksums are case-significant), mixed-case URIs, and URIs with
+non-alphanumeric query parts are returned unchanged:
 
 ```python
 from cuere import optimize_uri

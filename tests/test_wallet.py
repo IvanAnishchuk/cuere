@@ -34,6 +34,18 @@ def test_empty_string_is_untouched() -> None:
     assert optimize_uri("") == ""
 
 
+def test_non_bech32_scheme_is_untouched() -> None:
+    # ethereum: uses EIP-55 case-significant checksums — never uppercase it,
+    # even when it is fully lowercase and alphanumeric.
+    assert optimize_uri("ethereum:0xabcdef0123456789") == "ethereum:0xabcdef0123456789"
+    assert optimize_uri("mailto:user") == "mailto:user"
+
+
+def test_lightning_invoice_is_uppercased() -> None:
+    uri = "lightning:lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqf"
+    assert optimize_uri(uri) == uri.upper()
+
+
 def test_optimized_uri_never_grows_the_qr() -> None:
     for uri in (BECH32_URI, TAPROOT_URI, BASE58_URI, WC_URI):
         original = QRMatrix.encode(uri)
@@ -65,6 +77,7 @@ def test_optimize_uri_is_idempotent(uri: str) -> None:
     assert optimize_uri(once) == once
 
 
-@given(st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789:./", min_size=1, max_size=60))
-def test_lowercase_safe_input_round_trips_through_upper(uri: str) -> None:
+@given(st.text(alphabet="0123456789abcdefghijklmnopqrstuvwxyz", min_size=1, max_size=60))
+def test_lowercase_bitcoin_uri_round_trips_through_upper(suffix: str) -> None:
+    uri = f"bitcoin:{suffix}"
     assert optimize_uri(uri) == uri.upper()

@@ -10,8 +10,6 @@ EIP-55 checksums), to mixed-case URIs, or to URIs whose uppercased form is not
 QR-alphanumeric (e.g. anything with a ``?...`` query string).
 """
 
-from __future__ import annotations
-
 _QR_ALPHANUMERIC = frozenset("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:")
 
 # Schemes whose payloads are case-insensitive (bech32), so uppercasing the

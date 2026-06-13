@@ -5,15 +5,10 @@ remote-connection QR codes: two modules per character cell vertically using
 ``' '``, ``'▀'``, ``'▄'``, ``'█'``, no colors, quiet zone as real spaces.
 """
 
-from __future__ import annotations
-
 import enum
-from typing import TYPE_CHECKING
 
 from cuere.errors import CuereError
-
-if TYPE_CHECKING:
-    from cuere.matrix import QRMatrix
+from cuere.matrix import QRMatrix
 
 _HALF_GLYPHS = {
     (False, False): " ",

@@ -1,21 +1,16 @@
 """Tests for the typer CLI."""
 
-from __future__ import annotations
-
 import importlib
 import subprocess
 import sys
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
 
 from cuere import __version__, render
 from cuere.cli import app
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from pathlib import Path
 
 runner = CliRunner()
 

@@ -4,8 +4,6 @@ This is the only module that talks to segno; everything else operates on
 :class:`QRMatrix`.
 """
 
-from __future__ import annotations
-
 import enum
 from dataclasses import dataclass, replace
 from typing import Self

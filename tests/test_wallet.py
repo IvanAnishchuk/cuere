@@ -1,7 +1,5 @@
 """Tests pinning the optimize_uri contract."""
 
-from __future__ import annotations
-
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -49,6 +47,12 @@ def test_lightning_invoice_is_uppercased() -> None:
 def test_scheme_without_colon_is_untouched() -> None:
     # A bare word (no ":") is not a URI we recognize; leave it alone.
     assert optimize_uri("bitcoin") == "bitcoin"
+
+
+def test_scheme_parsed_at_first_colon() -> None:
+    # The scheme is whatever precedes the *first* colon (URI semantics), so a
+    # colon inside the payload must not hide the bitcoin: scheme.
+    assert optimize_uri("bitcoin:abc:def") == "BITCOIN:ABC:DEF"
 
 
 def test_optimized_uri_never_grows_the_qr() -> None:

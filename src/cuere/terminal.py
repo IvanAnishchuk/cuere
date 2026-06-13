@@ -1,19 +1,14 @@
 """High-level terminal API: render, show, fits."""
 
-from __future__ import annotations
-
 import os
 import shutil
 import sys
 import warnings
-from typing import TYPE_CHECKING, Literal
+from typing import IO, Literal
 
 from cuere.errors import WidthError
 from cuere.matrix import ECLevel, QRMatrix, coerce
 from cuere.render import RenderMode, coerce_mode, render_height, render_matrix, render_width
-
-if TYPE_CHECKING:
-    from typing import IO
 
 OnTooWide = Literal["error", "warn", "render"]
 

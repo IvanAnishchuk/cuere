@@ -17,3 +17,7 @@ dist/
 .hypothesis/
 .coverage
 .coverage.*
+
+# Mutation testing (mutmut sandbox copy + stats; run locally only)
+mutants/
+.mutmut-cache

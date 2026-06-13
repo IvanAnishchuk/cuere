@@ -4,9 +4,9 @@ dynamic = ["version"]
 description = "QR codes in your terminal: Unicode half-block rendering, Rich integration, wallet-URI helpers"
 readme = "README.md"
 license = "CC0-1.0"
-license-files = ["LICENSE"]
+license-files = ["LICENSE.md"]
 requires-python = ">=3.13"
-authors = [{ name = "Ivan Anishchuk", email = "" }]
+authors = [{ name = "Ivan Anishchuk", email = "ivan@agorism.org" }]
 keywords = ["qr", "qrcode", "terminal", "tty", "cli", "wallet", "walletconnect"]
 classifiers = [
     "Development Status :: 3 - Alpha",

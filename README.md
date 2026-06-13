@@ -108,4 +108,4 @@ Build-system notes (meson-python):
 
 ## License
 
-[CC0-1.0](LICENSE) — public domain.
+[CC0-1.0](LICENSE.md) — public domain.

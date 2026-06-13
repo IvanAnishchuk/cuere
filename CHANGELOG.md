@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   regardless of its value (including empty), per the no-color.org spec.
 - The CLI strips only trailing newlines from stdin (`rstrip("\r\n")`) instead
   of all surrounding whitespace, preserving intentional payload whitespace.
+- The release SBOM now excludes dev dependencies (`uv export --no-dev`), so it
+  describes only the published package's runtime dependencies.
+- Renamed `LICENSE` to `LICENSE.md`.
 
 ### Fixed
 
@@ -25,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `EncodingError` instead of leaking segno's `ValueError`.
 - Corrected the README usage example (undefined `payload`) and narrowed the
   `optimize_uri()` description to its actual contract.
+- Set a valid author email in project metadata (an empty `email` is invalid
+  per the PEP 621 specification).
+- The `coverage-comment` workflow now requests `actions: read` so it can
+  download the triggering Test run's artifacts.
 
 ### Security
 

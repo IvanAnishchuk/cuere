@@ -1,0 +1,12 @@
+# Default owner for everything in the repo.
+* @IvanAnishchuk
+
+# Sensitive paths (also covered by the catch-all, listed for clarity).
+/SECURITY.md            @IvanAnishchuk
+/.github/               @IvanAnishchuk
+/.github/workflows/     @IvanAnishchuk
+/.github/settings.yml   @IvanAnishchuk
+/.github/zizmor.yml     @IvanAnishchuk
+/pyproject.toml         @IvanAnishchuk
+/meson.build            @IvanAnishchuk
+/src/cuere/meson.build  @IvanAnishchuk

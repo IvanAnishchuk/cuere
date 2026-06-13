@@ -90,6 +90,8 @@ def main(
             on_too_wide="error" if check_width else "render",
             force=force,
         )
-    except (CuereError, OSError) as exc:
+    except (CuereError, OSError, UnicodeDecodeError) as exc:
+        # UnicodeDecodeError (a ValueError, not an OSError) fires when --input or
+        # stdin holds non-UTF-8 bytes; surface it as a clean error, not a traceback.
         typer.echo(f"error: {exc}", err=True)
         raise typer.Exit(code=1) from exc

@@ -64,26 +64,30 @@ unchanged; normal `pytest` runs keep full shrinking.
 
 ## Current status
 
-As of the suite in this branch: **269 mutants — 127 killed by tests, 136 caught
-by the type checker, 6 survivors (~97.8% caught)**. All 6 survivors are
+As of the suite in this branch: **219 mutants — 99 killed by tests, 116 caught
+by the type checker, 4 survivors (~98.2% caught)**. All 4 survivors are
 **equivalent mutants** that are also type-safe (so mypy cannot catch them
 either) — the mutated code is behaviorally identical to the original, so no test
 can distinguish it without asserting something artificial or weakening the code.
 They are listed below and **accepted for now**. This is not cemented: a later
 iteration may revisit whether any can be removed by a small refactor.
 
+(mutmut's numeric mutant IDs shift whenever the source changes, so the table
+describes the *mutation*, not a fixed `__mutmut_N` id.)
+
 ## Accepted equivalent mutants
 
-| Mutant(s) | Mutation | Why it is equivalent |
-| --- | --- | --- |
-| `render._half_lines` `__mutmut_28/29` | `zip(top, bottom, strict=True)` → `strict=False`/removed | `top` and `bottom` are always equal length by construction — `bottom` is either the next matrix row (rectangular) or an explicit `len(top)` light row — so `strict` can never trip. Kept as a defensive invariant. (The `strict=None` variant *is* caught by the type checker.) |
-| `terminal.fits` `__mutmut_3/14` | flips the `boost_error` default / drops the kwarg | `boost_error` changes the module *pattern* but never the matrix *size* (verified), and `fits` depends only on size, so it cannot change the result. The parameter is kept for signature symmetry with `render`/`show`. (The `boost_error=None` variant is caught by the type checker.) |
-| `terminal.show` `__mutmut_51/55` | drops / changes `warnings.warn(..., stacklevel=2)` | `stacklevel` only affects the file/line the warning is attributed to; it is not observable from the warning object, so no meaningful assertion exists. |
+| Mutation | Why it is equivalent |
+| --- | --- |
+| `render._half_lines`: `zip(top, bottom, strict=True)` → `strict=False` / `strict` removed | `top` and `bottom` are always equal length by construction — `bottom` is either the next matrix row (rectangular) or an explicit `len(top)` light row — so `strict` can never trip. Kept as a defensive invariant. (The `strict=None` variant *is* caught by the type checker.) |
+| `terminal.show`: `warnings.warn(..., stacklevel=2)` dropped / changed to `3` | `stacklevel` only affects the file/line the warning is attributed to; it is not observable from the warning object, so no meaningful assertion exists. |
 
-Three former survivors are now caught by the type-check pass instead of needing a
-test: `render._half_lines:25` (`strict=None`), `terminal.fits:9`
-(`boost_error=None`), and `terminal.show:29` (`render_mode=None`) — each passes
-`None` where a concrete type is required.
+Several other `None`-substitution mutants (e.g. `_half_lines`'s `strict=None`,
+`show`'s `render_mode=None`) are caught by the type-check pass rather than by a
+test — each passes `None` where a concrete type is required, which mypy rejects.
+(An earlier run also had two `fits` `boost_error` equivalents; the encode-options
+DRY removed those per-call mutation sites, so the kwarg is now only mutated once,
+in `QRMatrix.encode`.)
 
 If a future run reports a *new* survivor not in this table, it is a real gap —
 add a test that pins the affected behavior rather than extending this list.

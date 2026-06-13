@@ -8,17 +8,19 @@ Usage::
     Console().print(QRCode("wc:..."), justify="center")
 """
 
+from typing import Unpack
+
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.measure import Measurement
 from rich.segment import Segment
 from rich.style import Style
 
-from cuere.matrix import ECLevel, QRMatrix, coerce
-from cuere.render import RenderMode, coerce_mode, render_matrix, render_width
+from cuere.matrix import Encodable, EncodeOptions, QRMatrix, coerce
+from cuere.render import ANSI_BG, ANSI_FG, RenderMode, coerce_mode, render_matrix, render_width
 
 # Same polarity as render.ANSI_PREFIX, expressed as a Style so Rich owns the
 # SGR emission (and can strip it for export_text, files, etc.).
-ANSI_STYLE = Style(color="color(16)", bgcolor="color(231)")
+ANSI_STYLE = Style(color=f"color({ANSI_FG})", bgcolor=f"color({ANSI_BG})")
 
 
 class QRCode:
@@ -30,16 +32,13 @@ class QRCode:
 
     def __init__(
         self,
-        data: str | bytes | QRMatrix,
+        data: Encodable,
         *,
         mode: RenderMode | str = RenderMode.HALF,
         invert: bool = False,
-        border: int = 4,
-        error: ECLevel | str = ECLevel.L,
-        micro: bool = False,
-        boost_error: bool = False,
+        **options: Unpack[EncodeOptions],
     ) -> None:
-        self.matrix = coerce(data, border=border, error=error, micro=micro, boost_error=boost_error)
+        self.matrix = coerce(data, **options)
         self.mode = coerce_mode(mode)
         self.invert = invert
 

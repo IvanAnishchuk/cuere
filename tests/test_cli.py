@@ -101,6 +101,15 @@ def test_input_file_missing() -> None:
     assert "error:" in result.output
 
 
+def test_input_file_non_utf8(tmp_path: Path) -> None:
+    # A binary / non-UTF-8 file is a clean error, not an uncaught UnicodeDecodeError.
+    payload_file = tmp_path / "binary.bin"
+    _ = payload_file.write_bytes(b"\xff\xfe\x00not utf-8")
+    result = runner.invoke(app, ["--input", str(payload_file)])
+    assert result.exit_code == 1
+    assert "error:" in result.output
+
+
 def test_micro_flag() -> None:
     result = runner.invoke(app, ["12345", "--micro"])
     assert result.exit_code == 0

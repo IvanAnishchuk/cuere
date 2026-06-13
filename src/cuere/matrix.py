@@ -6,7 +6,7 @@ This is the only module that talks to segno; everything else operates on
 
 import enum
 from dataclasses import dataclass, replace
-from typing import Self
+from typing import Self, TypedDict, Unpack
 
 import segno
 
@@ -83,19 +83,30 @@ class QRMatrix:
         return replace(self, modules=flipped)
 
 
-def coerce(
-    data: str | bytes | QRMatrix,
-    *,
-    border: int = 4,
-    error: ECLevel | str = ECLevel.L,
-    micro: bool = False,
-    boost_error: bool = False,
-) -> QRMatrix:
+type Encodable = str | bytes | QRMatrix
+"""Anything the high-level API renders: raw ``str``/``bytes``, or a built matrix."""
+
+
+class EncodeOptions(TypedDict, total=False):
+    """Encoding keywords the high-level API forwards to :meth:`QRMatrix.encode`.
+
+    Declared once and spread via ``**opts: Unpack[EncodeOptions]`` so the
+    option set and its defaults live in a single place (``QRMatrix.encode``).
+    """
+
+    error: ECLevel | str
+    border: int
+    micro: bool
+    boost_error: bool
+
+
+def coerce(data: Encodable, **options: Unpack[EncodeOptions]) -> QRMatrix:
     """Return ``data`` as a :class:`QRMatrix`, encoding str/bytes input.
 
-    ``micro`` and ``boost_error`` apply only when ``data`` is encoded; a
-    pre-built :class:`QRMatrix` is returned unchanged.
+    The encode options (``error``/``border``/``micro``/``boost_error``) apply
+    only when ``data`` is encoded; a pre-built :class:`QRMatrix` is returned
+    unchanged.
     """
     if isinstance(data, QRMatrix):
         return data
-    return QRMatrix.encode(data, error=error, border=border, micro=micro, boost_error=boost_error)
+    return QRMatrix.encode(data, **options)

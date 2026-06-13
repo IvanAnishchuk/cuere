@@ -44,8 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 - OSV-Scanner findings fail CI; the coverage-comment `workflow_run` job is
-  restricted to same-repository runs; the gitleaks allowlist is scoped to a
-  single test file; `scripts/audit.py` subprocesses have a timeout.
+  restricted to same-repository pull-request runs; the gitleaks allowlist is
+  scoped to a single test file; `scripts/audit.py` subprocesses have a timeout.
+- Release publish routing uses anchored version matching (not substring) to
+  choose PyPI vs TestPyPI, so it cannot misroute on incidental tag/branch text.
 - Release builds publish via PyPI trusted publishing (OIDC) with sigstore
   signatures, SLSA provenance, PEP 740 attestations, and a CycloneDX SBOM.
 

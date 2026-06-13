@@ -29,7 +29,8 @@ def test_meson_sources_match_package_directory() -> None:
 def test_version_is_defined_only_in_meson() -> None:
     root = PACKAGE_DIR.parent.parent
     meson = (root / "meson.build").read_text(encoding="utf-8")
-    assert re.search(r"version: '\d+\.\d+\.\d+'", meson)
+    # Allow a PEP 440 pre-release/dev suffix (e.g. 0.1.0rc1) as well as X.Y.Z.
+    assert re.search(r"version: '\d+\.\d+\.\d+[a-zA-Z0-9.]*'", meson)
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
     assert 'dynamic = ["version"]' in pyproject
     assert not re.search(r"(?m)^version\s*=", pyproject)

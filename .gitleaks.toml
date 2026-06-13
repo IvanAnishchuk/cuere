@@ -1,17 +1,21 @@
 # gitleaks configuration for cuere.
 #
-# The test suite embeds example crypto-wallet URIs — notably a WalletConnect
-# `wc:` link whose `symKey` is 64 hex chars. These are fabricated test
-# vectors, not real secrets, but their entropy trips the default
-# generic-api-key rule. Allowlist that specific shape; keep every other
-# default rule active.
+# The test suite embeds an example WalletConnect `wc:` URI whose `symKey`
+# is 64 hex chars — a fabricated test vector, not a real secret, but its
+# entropy trips the default generic-api-key rule. Allowlist that exact
+# shape, scoped to test files (path AND regex must both match) so it can
+# never mask a real secret elsewhere. Every other default rule stays active.
 title = "cuere"
 
 [extend]
 useDefault = true
 
-[allowlist]
+[[allowlists]]
 description = "Fabricated wallet-URI test vectors are not real secrets"
+condition = "AND"
+paths = [
+  '''tests/.*''',
+]
 regexTarget = "line"
 regexes = [
   '''symKey=[0-9a-fA-F]{40,}''',

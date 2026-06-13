@@ -37,14 +37,21 @@ def fail(msg: str) -> None:
     sys.exit(1)
 
 
+COMMAND_TIMEOUT = 600  # seconds; guard against a hung tool or network call
+
+
 def run_capture(cmd: list[str]) -> tuple[int, str]:
-    result = subprocess.run(
-        cmd,
-        capture_output=True,
-        text=True,
-        cwd=REPO_ROOT,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            cwd=REPO_ROOT,
+            check=False,
+            timeout=COMMAND_TIMEOUT,
+        )
+    except subprocess.TimeoutExpired:
+        return 1, f"command timed out after {COMMAND_TIMEOUT}s: {' '.join(cmd)}"
     return result.returncode, (result.stdout or "") + (result.stderr or "")
 
 

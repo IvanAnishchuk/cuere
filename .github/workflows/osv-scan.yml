@@ -44,7 +44,6 @@ jobs:
             --format=sarif
             --recursive
             ./
-        continue-on-error: true
 
       - name: Upload OSV SARIF
         if: always()

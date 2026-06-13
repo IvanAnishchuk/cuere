@@ -60,7 +60,7 @@ def main(
     ] = False,
 ) -> None:
     """Render DATA as a QR code in the terminal."""
-    payload = sys.stdin.read().strip() if data == "-" else data
+    payload = sys.stdin.read().rstrip("\r\n") if data == "-" else data
     if optimize:
         payload = optimize_uri(payload)
     try:

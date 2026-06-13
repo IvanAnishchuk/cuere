@@ -35,9 +35,10 @@ uv add cuere        # or: pip install cuere
 ```python
 from cuere import render, show, fits
 
-show("wc:7f6e504b...@2?relay-protocol=irn&symKey=587d...")  # prints to stdout
-text = render("HELLO", mode="block", invert=True)           # returns a str
-if not fits(payload):                                        # width check
+payload = "wc:7f6e504b...@2?relay-protocol=irn&symKey=587d..."
+show(payload)                                       # prints to stdout
+text = render("HELLO", mode="block", invert=True)   # returns a str
+if not fits(payload):                               # does it fit the terminal?
     ...
 ```
 
@@ -51,9 +52,10 @@ from cuere.rich import QRCode
 Console().print(Panel(QRCode("bitcoin:BC1Q..."), title="scan to pay"), justify="center")
 ```
 
-Wallet URIs — uppercase a lowercase bech32 URI so it encodes in QR
-alphanumeric mode (a noticeably smaller code; BIP-173/BIP-21 are
-case-insensitive, so this is lossless):
+Wallet URIs — `optimize_uri()` uppercases a **fully lowercase** bech32-style
+URI so it encodes in QR alphanumeric mode (a smaller code; BIP-173/BIP-21 are
+case-insensitive, so this is lossless). Mixed-case URIs, or those with
+non-alphanumeric query parts, are returned unchanged:
 
 ```python
 from cuere import optimize_uri

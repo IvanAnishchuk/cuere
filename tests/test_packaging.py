@@ -14,7 +14,10 @@ PACKAGE_DIR = Path(__file__).parent.parent / "src" / "cuere"
 
 def test_meson_sources_match_package_directory() -> None:
     meson = (PACKAGE_DIR / "meson.build").read_text(encoding="utf-8")
-    listed = set(re.findall(r"'([^']+)'", meson)) - {"cuere"}  # drop subdir: 'cuere'
+    # Only quoted tokens that look like installed files, so unrelated quoted
+    # strings (the subdir name, comments, future options) can't break this.
+    quoted: list[str] = re.findall(r"'([^']+)'", meson)
+    listed = {tok for tok in quoted if tok.endswith(".py") or tok == "py.typed"}
     actual = {
         path.name
         for path in PACKAGE_DIR.iterdir()

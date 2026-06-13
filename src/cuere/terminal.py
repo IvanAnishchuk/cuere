@@ -83,7 +83,9 @@ def show(
 
 
 def _ansi_ok(stream: IO[str]) -> bool:
-    if os.environ.get("NO_COLOR"):
+    # Per https://no-color.org/, NO_COLOR disables color whenever it is
+    # present, regardless of its value (including the empty string).
+    if "NO_COLOR" in os.environ:
         return False
     isatty = getattr(stream, "isatty", None)
     return bool(isatty is not None and isatty())

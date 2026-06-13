@@ -125,6 +125,14 @@ def test_ansi_downgrades_under_no_color() -> None:
     assert "\x1b[" not in out.getvalue()
 
 
+def test_ansi_downgrades_when_no_color_is_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Presence of NO_COLOR disables color even when the value is empty.
+    monkeypatch.setenv("NO_COLOR", "")
+    out = _FakeTty()
+    show("HELLO", mode="ansi", out=out, width=100)
+    assert "\x1b[" not in out.getvalue()
+
+
 @pytest.mark.usefixtures("no_color")
 def test_ansi_force_overrides_guards() -> None:
     out = io.StringIO()

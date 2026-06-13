@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `NO_COLOR` now disables ANSI output whenever the variable is present,
+  regardless of its value (including empty), per the no-color.org spec.
+- The CLI strips only trailing newlines from stdin (`rstrip("\r\n")`) instead
+  of all surrounding whitespace, preserving intentional payload whitespace.
+
+### Fixed
+
+- `QRMatrix.encode` wraps an invalid `border` (e.g. negative) in
+  `EncodingError` instead of leaking segno's `ValueError`.
+- Corrected the README usage example (undefined `payload`) and narrowed the
+  `optimize_uri()` description to its actual contract.
+
+### Security
+
+- OSV-Scanner findings now fail CI (removed `continue-on-error`).
+- The coverage-comment `workflow_run` job is restricted to same-repository
+  runs so fork PRs cannot reach it with write permissions.
+- Scoped the gitleaks allowlist to test paths (path + regex) so the
+  wallet-URI exception cannot mask secrets elsewhere.
+- `scripts/audit.py` subprocess calls now have a timeout so a hung tool
+  cannot stall CI or pre-push indefinitely.
+
 ## [0.1.0] - 2026-06-13
 
 ### Added

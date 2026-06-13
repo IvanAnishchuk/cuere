@@ -59,9 +59,9 @@ class QRMatrix:
         try:
             level = ECLevel(error)
             qr = segno.make(data, error=level.value, micro=micro, boost_error=boost_error)
-        except ValueError as exc:  # segno.DataOverflowError is a ValueError
+            modules = tuple(tuple(bool(m) for m in row) for row in qr.matrix_iter(border=border))
+        except ValueError as exc:  # DataOverflowError and an invalid border are both ValueErrors
             raise EncodingError(str(exc)) from exc
-        modules = tuple(tuple(bool(m) for m in row) for row in qr.matrix_iter(border=border))
         return cls(modules=modules, version=qr.version, border=border)
 
     @property

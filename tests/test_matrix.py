@@ -64,6 +64,11 @@ def test_bad_error_level_raises_encoding_error() -> None:
         _ = QRMatrix.encode("HELLO", error="X")
 
 
+def test_negative_border_raises_encoding_error() -> None:
+    with pytest.raises(EncodingError):
+        _ = QRMatrix.encode("HELLO", border=-1)
+
+
 def test_inverted_is_an_involution() -> None:
     matrix = QRMatrix.encode("HELLO")
     assert matrix.inverted() != matrix

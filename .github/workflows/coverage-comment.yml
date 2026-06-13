@@ -19,7 +19,11 @@ jobs:
   coverage:
     name: Coverage comment + badge
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
+    # Same-repo runs only: a fork PR must not reach this privileged
+    # (contents/pull-requests: write) job with attacker-influenced artifacts.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     timeout-minutes: 5
     permissions:
       contents: write       # push badge to data branch

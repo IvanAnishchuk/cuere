@@ -1,0 +1,16 @@
+name: Question
+description: Ask how to use cuere
+labels: [question]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What are you trying to figure out?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: What have you tried?
+      description: Commands/code you've run and what happened

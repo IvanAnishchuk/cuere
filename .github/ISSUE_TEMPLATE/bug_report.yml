@@ -1,0 +1,59 @@
+name: Bug report
+description: Report something that isn't working correctly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not report security vulnerabilities here** — use
+        [private reporting](https://github.com/IvanAnishchuk/cuere/security/advisories/new).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Steps, a CLI invocation, or a few lines of Python that trigger it
+      placeholder: |
+        cuere "wc:..." --mode ansi
+        # or
+        from cuere import render; render("...")
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: cuere version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.13.2"
+    validations:
+      required: true
+  - type: input
+    id: os-terminal
+    attributes:
+      label: OS and terminal
+      placeholder: "Ubuntu 24.04 / kitty; macOS 15 / Terminal.app; Windows 11 / WT"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output / traceback
+      render: text

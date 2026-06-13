@@ -94,6 +94,10 @@ select = [
     "T20",     # print is useful in test debugging
     "PLR2004", # magic values are expected in golden/glyph tests
 ]
+"scripts/*" = [
+    "S603",    # subprocess args are list literals, not user input
+    "S607",    # partial paths are fine for well-known tools (uv, python)
+]
 
 [tool.ruff.lint.pylint]
 # show()/the CLI command take many keyword-only rendering options by design.

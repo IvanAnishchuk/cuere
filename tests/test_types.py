@@ -36,7 +36,11 @@ def test_public_api_return_types() -> None:
     _ = assert_type(render_width(matrix), int)
     _ = assert_type(render_height(matrix), int)
 
-    _ = assert_type(show("HI", out=io.StringIO(), width=80), None)
+    # `show` returns None: call it bare (don't bind/assert the result) so the
+    # call's signature is still type-checked without tripping CodeQL's
+    # py/use-of-return-value on an intentionally-None value. Its None return and
+    # behavior are covered in test_terminal.py.
+    show("HI", out=io.StringIO(), width=80)
     _ = assert_type(fits("HI", width=80), bool)
 
     _ = assert_type(optimize_uri("bitcoin:bc1q"), str)

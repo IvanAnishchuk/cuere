@@ -102,6 +102,15 @@ repos:
         pass_filenames: false
         require_serial: true
 
+      - id: zizmor
+        name: zizmor (GitHub Actions security)
+        # Offline locally for speed; the Zizmor CI workflow runs online audits.
+        entry: uv run zizmor --offline .github/workflows/
+        language: system
+        files: ^\.github/(workflows/.*|zizmor\.yml)
+        pass_filenames: false
+        require_serial: true
+
   # ── Secret scanning ──────────────────────────────────────────
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.1

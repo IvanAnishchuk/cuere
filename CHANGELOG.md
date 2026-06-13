@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `zizmor` GitHub Actions security audit: dev dependency, a local pre-commit
+  hook (offline), and a CI workflow running online audits with SARIF upload to
+  code scanning.
+- `.github/settings.yml` (repository-settings app): `security_and_analysis`
+  (secret scanning + push protection + Dependabot security updates), branch
+  protection on `main`, and the PyPI/TestPyPI environments — as code.
+- `.github/CODEOWNERS`.
+- gitleaks now uploads its SARIF to code scanning.
+
+### Fixed
+
+- Corrected mismatched action version comments (e.g. `setup-uv` was labelled
+  `v4.2.0` but pinned to `v8.2.0`; CodeQL `v3.27.5`→`v4.36.2`; gitleaks
+  `v2.3.6`→`v3.0.0`). The pinned SHAs are unchanged; the comments now match.
+
+### Security
+
+- Hardened the release build against cache poisoning (`enable-cache: false`
+  on the publish build's `setup-uv`).
+
 ## [0.1.0] - 2026-06-13
 
 ### Added

@@ -1,0 +1,78 @@
+# Repository settings managed by the repository-settings/app GitHub App.
+# https://probot.github.io/apps/settings/
+# NOTE: requires the "Settings" GitHub App to be installed on the repo to apply.
+repository:
+  name: cuere
+  description: >-
+    QR codes in your terminal: Unicode half-block rendering, Rich integration,
+    and crypto-wallet URI helpers.
+  homepage: https://github.com/IvanAnishchuk/cuere
+  topics:
+    - qrcode
+    - qr
+    - terminal
+    - cli
+    - rich
+    - wallet
+    - walletconnect
+    - bitcoin
+    - python
+    - supply-chain-security
+  private: false
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  has_downloads: true
+  default_branch: main
+  allow_squash_merge: false
+  allow_merge_commit: true
+  allow_rebase_merge: false
+  allow_auto_merge: true
+  delete_branch_on_merge: true
+  allow_update_branch: true
+
+  security_and_analysis:
+    secret_scanning:
+      status: enabled
+    secret_scanning_push_protection:
+      status: enabled
+    dependabot_security_updates:
+      status: enabled
+
+branches:
+  - name: main
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+        require_last_push_approval: true
+      # Only PR-gating checks (NOT the tag-only release/SLSA jobs, which would
+      # never run on a PR and would block merges). Names must match exactly.
+      required_status_checks:
+        strict: true
+        contexts:
+          - "Test (Python 3.13)"
+          - "Test (Python 3.14)"
+          - "Lint & format"
+          - "Type check (mypy)"
+          - "Type check (ty)"
+          - "Type check (basedpyright)"
+          - "CodeQL (python)"
+          - "Dependency audit"
+          - "OSV scan"
+          - "Secret scan"
+          - "Review dependency changes"
+          - "GitHub Actions security audit"
+      enforce_admins: false  # solo maintainer keeps admin bypass (not locked out)
+      required_linear_history: false  # merge commits are used for PRs
+      allow_force_pushes: false
+      allow_deletions: false
+      required_conversation_resolution: true
+      required_signatures: true
+
+environments:
+  - name: pypi
+    wait_timer: 0
+  - name: testpypi
+    wait_timer: 0

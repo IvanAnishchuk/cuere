@@ -9,10 +9,13 @@ from typing import assert_type
 
 from cuere import (
     QRMatrix,
+    SchemeCase,
     fits,
     is_qr_alphanumeric,
+    lightning_uri,
     optimize_uri,
     render,
+    scheme_case,
     show,
 )
 from cuere.render import render_height, render_matrix, render_width
@@ -43,3 +46,5 @@ def test_public_api_return_types() -> None:
 
     _ = assert_type(optimize_uri("bitcoin:bc1q"), str)
     _ = assert_type(is_qr_alphanumeric("HI"), bool)
+    _ = assert_type(lightning_uri("lnbc1abc"), str)
+    _ = assert_type(scheme_case("bitcoin:bc1q"), SchemeCase)

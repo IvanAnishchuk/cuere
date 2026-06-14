@@ -12,11 +12,14 @@ from cuere.matrix import ECLevel, QRMatrix
 from cuere.render import RenderMode, render_height, render_matrix, render_width
 from cuere.terminal import SupportsWrite, fits, render, show
 from cuere.wallet import (
+    SchemeCase,
     bitcoin_uri,
     erc20_transfer_uri,
     ethereum_uri,
     is_qr_alphanumeric,
+    lightning_uri,
     optimize_uri,
+    scheme_case,
 )
 
 __all__ = [
@@ -25,6 +28,7 @@ __all__ = [
     "EncodingError",
     "QRMatrix",
     "RenderMode",
+    "SchemeCase",
     "SupportsWrite",
     "WalletURIError",
     "WidthError",
@@ -34,11 +38,13 @@ __all__ = [
     "ethereum_uri",
     "fits",
     "is_qr_alphanumeric",
+    "lightning_uri",
     "optimize_uri",
     "render",
     "render_height",
     "render_matrix",
     "render_width",
+    "scheme_case",
     "show",
 ]
 

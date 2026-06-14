@@ -54,19 +54,23 @@ Console().print(Panel(QRCode("bitcoin:BC1Q..."), title="scan to pay"), justify="
 ```
 
 Wallet URIs — `bitcoin_uri()` builds a validated [BIP-21](https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki)
-`bitcoin:` payment request, and `optimize_uri()` uppercases a fully lowercase
-`bitcoin:` or `lightning:` URI (bech32 is case-insensitive per BIP-173) so it
-encodes in QR alphanumeric mode, yielding a smaller code. Other schemes (e.g.
-`ethereum:`, whose EIP-55 checksums are case-significant), mixed-case URIs, and
-URIs with non-alphanumeric query parts are returned unchanged:
+`bitcoin:` payment request, `lightning_uri()` wraps a bech32 Lightning payload
+(BOLT11 invoice / LNURL / BOLT12 offer) in a `lightning:` URI, and
+`optimize_uri()` uppercases a fully lowercase `bitcoin:` or `lightning:` URI
+(bech32 is case-insensitive per BIP-173) so it encodes in QR alphanumeric mode,
+yielding a smaller code. `scheme_case()` exposes the typed `SchemeCase` that
+decides this: case-significant schemes (`ethereum:` EIP-55 checksums, `wc:`
+WalletConnect), mixed-case URIs, and URIs with non-alphanumeric query parts are
+returned unchanged:
 
 ```python
 from decimal import Decimal
-from cuere import bitcoin_uri, optimize_uri, show
+from cuere import bitcoin_uri, lightning_uri, optimize_uri, show
 
 show(optimize_uri(bitcoin_uri("bc1q...")))                  # smaller, scannable code
 bitcoin_uri("bc1q...", amount=Decimal("0.01"), label="Tip") # -> "bitcoin:bc1q...?amount=0.01&label=Tip"
 optimize_uri("bitcoin:bc1q...")                             # -> "BITCOIN:BC1Q..."
+optimize_uri(lightning_uri("lnbc1..."))                     # -> "LIGHTNING:LNBC1..."
 ```
 
 For Ethereum, `ethereum_uri()` and `erc20_transfer_uri()` build
@@ -82,8 +86,9 @@ erc20_transfer_uri("0xA0b8...eB48", to="0x8e23...d052", amount=1_000_000)  # -> 
 ```
 
 See the [cookbook](docs/cookbook.md) for the full payment-request recipes, and
-the [BIP-21](docs/bip-21.md) / [EIP-681](docs/eip-681.md) summaries for the
-formats.
+the [BIP-21](docs/bip-21.md) / [Lightning](docs/lightning-uri.md) /
+[EIP-681](docs/eip-681.md) summaries for the formats and the `optimize_uri`
+scheme model.
 
 Need the raw module grid (to render it yourself or inspect it)? Encode to a
 `QRMatrix`:

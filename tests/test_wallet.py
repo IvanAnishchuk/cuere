@@ -11,13 +11,16 @@ from hypothesis import strategies as st
 from cuere import (
     CuereError,
     QRMatrix,
+    SchemeCase,
     WalletURIError,
     bitcoin_uri,
     erc20_transfer_uri,
     ethereum_uri,
     is_qr_alphanumeric,
+    lightning_uri,
     optimize_uri,
     render,
+    scheme_case,
 )
 
 BECH32_URI = "bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
@@ -105,6 +108,46 @@ def test_optimize_uri_is_idempotent(uri: str) -> None:
 def test_lowercase_bitcoin_uri_round_trips_through_upper(suffix: str) -> None:
     uri = f"bitcoin:{suffix}"
     assert optimize_uri(uri) == uri.upper()
+
+
+# --- scheme_case (the public optimize_uri scheme classifier) --------------
+
+
+def test_scheme_case_enum_has_the_three_documented_members() -> None:
+    assert {member.name for member in SchemeCase} == {"INSENSITIVE", "SIGNIFICANT", "UNKNOWN"}
+
+
+@pytest.mark.parametrize(
+    ("uri", "expected"),
+    [
+        (BECH32_URI, SchemeCase.INSENSITIVE),  # bitcoin: — bech32, foldable
+        ("lightning:lnbc1abc", SchemeCase.INSENSITIVE),
+        ("BITCOIN:BC1Q", SchemeCase.INSENSITIVE),  # scheme matched case-insensitively
+        ("ethereum:0xabc", SchemeCase.SIGNIFICANT),  # EIP-55 case carries meaning
+        (WC_URI, SchemeCase.SIGNIFICANT),  # wc: recognized explicitly, not UNKNOWN
+        ("mailto:user", SchemeCase.UNKNOWN),  # a real scheme cuere does not know
+        ("bitcoin", SchemeCase.UNKNOWN),  # no ":" -> no scheme
+        ("", SchemeCase.UNKNOWN),
+    ],
+)
+def test_scheme_case_classifies_each_scheme(uri: str, expected: SchemeCase) -> None:
+    assert scheme_case(uri) is expected
+
+
+def test_walletconnect_is_recognized_as_case_significant_not_unknown() -> None:
+    # The crux of #29: wc: is recognized *explicitly* as case-significant —
+    # distinct from an unknown scheme even though both are passed through.
+    assert scheme_case(WC_URI) is SchemeCase.SIGNIFICANT
+
+
+def test_optimize_uri_folds_exactly_the_case_insensitive_schemes() -> None:
+    # optimize_uri's gate is precisely "scheme_case(uri) is INSENSITIVE".
+    for uri in (BECH32_URI, "lightning:lnbc1abc"):
+        assert scheme_case(uri) is SchemeCase.INSENSITIVE
+        assert optimize_uri(uri) == uri.upper()
+    for uri in ("ethereum:0xabc", WC_URI, "mailto:user", "bitcoin"):
+        assert scheme_case(uri) is not SchemeCase.INSENSITIVE
+        assert optimize_uri(uri) == uri
 
 
 # --- bitcoin_uri (BIP-21) -------------------------------------------------
@@ -236,6 +279,84 @@ def test_label_round_trips_through_percent_encoding(label: str) -> None:
     uri = bitcoin_uri(BECH32_ADDRESS, label=label)
     encoded = uri.partition("label=")[2]
     assert unquote(encoded) == label
+
+
+# --- lightning_uri (BOLT11 / LNURL / BOLT12) ------------------------------
+
+# Structurally valid (truncated) bech32 lightning payloads of each kind.
+BOLT11_INVOICE = "lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqf"
+LNURL = "lnurl1dp68gurn8ghj7um9wfmxjcm99e3k7mf0v9cxj0m385ekvcenxc6r2c35xvukxefcv5mkv"
+BOLT12_OFFER = "lno1pqqkgz3zxyceqcfqqqqx5w6m"
+
+
+def test_lightning_uri_prefixes_the_scheme() -> None:
+    assert lightning_uri(BOLT11_INVOICE) == f"lightning:{BOLT11_INVOICE}"
+
+
+@pytest.mark.parametrize("payload", [BOLT11_INVOICE, LNURL, BOLT12_OFFER])
+def test_lightning_uri_accepts_bech32_lightning_payloads(payload: str) -> None:
+    assert lightning_uri(payload) == f"lightning:{payload}"
+
+
+def test_lightning_uri_accepts_an_all_uppercase_payload_verbatim() -> None:
+    # bech32 may be all-upper (already QR-alphanumeric); it is kept verbatim.
+    upper = BOLT11_INVOICE.upper()
+    assert lightning_uri(upper) == f"lightning:{upper}"
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        "",  # empty
+        "lnBC1abc",  # mixed-case bech32 is invalid (BIP-173)
+        "lightning:lnbc1abc",  # already a URI, not a bare payload
+        "lnbc1 abc",  # space
+        "lnbc1?x",  # query character
+        "lnbc1@x",  # @
+        "xnbc1abc",  # missing the lightning "ln" human-readable prefix
+        "ln",  # prefix only, no data
+        "naïve1abc",  # non-ASCII
+    ],
+)
+def test_lightning_uri_rejects_bad_payloads(payload: str) -> None:
+    with pytest.raises(WalletURIError):
+        _ = lightning_uri(payload)
+
+
+def test_lightning_uri_error_is_a_cuere_error_and_carries_the_value() -> None:
+    assert issubclass(WalletURIError, CuereError)
+    with pytest.raises(WalletURIError) as exc_info:
+        _ = lightning_uri("not a payload")
+    assert exc_info.value.value == "not a payload"
+
+
+def test_lightning_uri_composes_with_optimize_uri() -> None:
+    # A lowercase invoice is byte-mode bare, but optimize_uri uppercases the
+    # lightning: URI into QR-alphanumeric mode for a smaller code.
+    uri = lightning_uri(BOLT11_INVOICE)
+    assert scheme_case(uri) is SchemeCase.INSENSITIVE
+    assert optimize_uri(uri) == uri.upper()
+
+
+def test_lightning_uri_optimization_never_grows_the_qr() -> None:
+    uri = lightning_uri(BOLT11_INVOICE)
+    original = QRMatrix.encode(uri)
+    optimized = QRMatrix.encode(optimize_uri(uri))
+    assert isinstance(original.version, int)
+    assert isinstance(optimized.version, int)
+    assert optimized.version <= original.version
+
+
+def test_lightning_uri_composes_with_render_and_encode() -> None:
+    uri = lightning_uri(BOLT11_INVOICE)
+    assert isinstance(render(uri), str)
+    assert isinstance(QRMatrix.encode(uri).version, int)
+
+
+@given(st.text(alphabet="0123456789abcdefghijklmnopqrstuvwxyz", min_size=1))
+def test_lightning_uri_round_trips_a_bech32_payload(suffix: str) -> None:
+    payload = f"ln{suffix}"
+    assert lightning_uri(payload) == f"lightning:{payload}"
 
 
 # --- ethereum_uri / erc20_transfer_uri (EIP-681) --------------------------

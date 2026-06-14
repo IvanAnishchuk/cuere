@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lightning_uri()` — a typed `lightning:` URI builder for bech32 Lightning
+  payloads (BOLT11 invoices `lnbc…`, LNURL `lnurl1…`, BOLT12 offers `lno1…`).
+  The payload is validated structurally (a single-case run of ASCII
+  alphanumerics beginning `ln`) without a checksum verify, mirroring
+  `bitcoin_uri`; invalid input raises `WalletURIError`. A lowercase result
+  composes with `optimize_uri` for a smaller QR. Documented in
+  `docs/cookbook.md` and a new `docs/lightning-uri.md`.
+- `SchemeCase` and `scheme_case()` — a public, typed classifier for how
+  `optimize_uri` treats a URI's scheme: `INSENSITIVE` (bech32 — `bitcoin:` /
+  `lightning:` — may be uppercased), `SIGNIFICANT` (case carries meaning —
+  `ethereum:` EIP-55, `wc:` WalletConnect — never folded), or `UNKNOWN`
+  (unrecognized scheme, also never folded). `optimize_uri` now gates on this, so
+  `wc:` is recognized **explicitly** as case-significant rather than incidentally
+  passed through.
 - `ethereum_uri()` and `erc20_transfer_uri()` — typed
   [EIP-681](https://eips.ethereum.org/EIPS/eip-681) `ethereum:` request builders.
   `ethereum_uri(address, *, value=None, chain_id=None, gas_limit=None,
@@ -64,6 +78,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `optimize_uri()` is refactored onto the new `scheme_case()`; its behavior is
+  unchanged (case-insensitive, lowercase, no-query URIs are uppercased;
+  everything else is returned verbatim), but `ethereum:` and `wc:` are now
+  deliberately classified as case-significant rather than relying on the
+  unknown-scheme default.
 - Dropped `from __future__ import annotations` and the `if TYPE_CHECKING:`
   gating of cheap stdlib/intra-package imports — those are now plain runtime
   imports. Removed the `flake8-type-checking` (`TCH`) ruff ruleset, which had

@@ -4,13 +4,25 @@ import os
 import shutil
 import sys
 import warnings
-from typing import IO, Literal, Unpack
+from typing import Literal, Protocol, Unpack
 
 from cuere.errors import WidthError
 from cuere.matrix import Encodable, EncodeOptions, coerce
 from cuere.render import RenderMode, coerce_mode, render_height, render_matrix, render_width
 
 OnTooWide = Literal["error", "warn", "render"]
+
+
+class SupportsWrite(Protocol):
+    """A text sink: any object with a ``write(str)`` method.
+
+    ``show`` writes a single string and probes ``isatty`` defensively via
+    ``getattr``, so it needs only this much of a stream — ``sys.stdout``,
+    ``io.StringIO``, and minimal write-only wrappers all qualify. This is
+    deliberately narrower than ``typing.IO[str]``.
+    """
+
+    def write(self, s: str, /) -> object: ...
 
 
 def render(
@@ -52,7 +64,7 @@ def show(
     *,
     mode: RenderMode | str = RenderMode.HALF,
     invert: bool = False,
-    out: IO[str] | None = None,
+    out: SupportsWrite | None = None,
     width: int | None = None,
     on_too_wide: OnTooWide = "error",
     force: bool = False,
@@ -87,7 +99,7 @@ def show(
     _ = stream.write(render_matrix(matrix, mode=render_mode, invert=invert) + "\n")
 
 
-def _ansi_ok(stream: IO[str]) -> bool:
+def _ansi_ok(stream: SupportsWrite) -> bool:
     # Per https://no-color.org/, NO_COLOR disables color whenever it is
     # present, regardless of its value (including the empty string).
     if "NO_COLOR" in os.environ:

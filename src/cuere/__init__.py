@@ -10,7 +10,7 @@ import importlib.metadata
 from cuere.errors import CuereError, EncodingError, WidthError
 from cuere.matrix import ECLevel, QRMatrix
 from cuere.render import RenderMode, render_height, render_matrix, render_width
-from cuere.terminal import fits, render, show
+from cuere.terminal import SupportsWrite, fits, render, show
 from cuere.wallet import is_qr_alphanumeric, optimize_uri
 
 __all__ = [
@@ -19,6 +19,7 @@ __all__ = [
     "EncodingError",
     "QRMatrix",
     "RenderMode",
+    "SupportsWrite",
     "WidthError",
     "__version__",
     "fits",

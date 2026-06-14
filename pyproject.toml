@@ -123,6 +123,10 @@ strict = true
 warn_return_any = true
 warn_unused_configs = true
 warn_unreachable = true
+# Made explicit even though `strict = true` already implies them: pins the
+# intent and survives any future change to what the strict bundle enables.
+strict_equality = true
+warn_redundant_casts = true
 
 [tool.basedpyright]
 typeCheckingMode = "recommended"
@@ -159,6 +163,9 @@ exclude_lines = [
     "if __name__",
     "pragma: no cover",
     "if TYPE_CHECKING:",
+    # Protocol method bodies are non-executable stubs (`...`), never called at
+    # runtime — coverage.py's recommended exclusion for them.
+    'class .*\bProtocol\):',
 ]
 
 [tool.mutmut]

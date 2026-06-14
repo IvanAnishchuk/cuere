@@ -27,6 +27,11 @@ dependencies = [
     "rich>=13.0",
 ]
 
+[project.optional-dependencies]
+# PNG export (cuere.output png format). Pillow is heavy and only needed for
+# raster output, so it is an opt-in extra, imported lazily in cuere.output.
+image = ["pillow>=11.0"]
+
 [project.urls]
 Homepage = "https://github.com/IvanAnishchuk/cuere"
 Repository = "https://github.com/IvanAnishchuk/cuere"
@@ -53,6 +58,9 @@ dev = [
     "hypothesis>=6.155.2",
     "zizmor>=1.25",
     "mutmut>=3.5",
+    # The image extra, pinned for the dev env so the type checkers resolve PIL
+    # and the PNG tests can run; end users opt in via `pip install cuere[image]`.
+    "pillow>=11.0",
 ]
 
 [build-system]
@@ -89,6 +97,7 @@ select = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
     "S101",    # assert is fine in tests
+    "S314",    # ET.fromstring parses cuere's own generated SVG, not untrusted input
     "S603",    # subprocess with validated input in fixtures
     "S607",    # partial executable path in test setup
     "BLE001",  # broad Exception in test fixtures
@@ -101,8 +110,9 @@ select = [
 ]
 
 [tool.ruff.lint.pylint]
-# show()/the CLI command expose many keyword-only rendering options by design.
-max-args = 12
+# show()/the CLI command expose many keyword-only rendering options by design
+# (the CLI grew --output and --scale for the format dispatcher).
+max-args = 14
 max-returns = 8
 max-branches = 15
 max-statements = 60

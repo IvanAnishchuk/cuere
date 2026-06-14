@@ -1,11 +1,20 @@
 """Glyph-level and golden-output tests for the renderers."""
 
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
 
-from cuere import QRMatrix, RenderMode, render, render_height, render_matrix, render_width
-from cuere.render import ANSI_PREFIX, ANSI_RESET
+from cuere import (
+    CuereError,
+    QRMatrix,
+    RenderMode,
+    render,
+    render_height,
+    render_matrix,
+    render_width,
+)
+from cuere.render import ANSI_PREFIX, ANSI_RESET, DEFAULT_SCALE, render_svg
 
 GOLDEN = Path(__file__).parent / "golden"
 WC_URI = (
@@ -79,6 +88,43 @@ def test_extreme_border_renders_rectangular_with_blank_frame(mode: RenderMode) -
     assert len({len(line) for line in lines}) == 1
     top = lines[0].replace(ANSI_PREFIX, "").replace(ANSI_RESET, "")
     assert set(top) <= {" "}
+
+
+# ── svg ──────────────────────────────────────────────────────────
+
+
+def test_svg_is_well_formed_and_scaled() -> None:
+    matrix = QRMatrix.encode("HELLO")
+    root = ET.fromstring(render_svg(matrix, scale=4))
+    assert root.attrib["width"] == str(matrix.width * 4)
+    assert root.attrib["height"] == str(matrix.height * 4)
+    assert root.attrib["viewBox"] == f"0 0 {matrix.width} {matrix.height}"
+
+
+def test_svg_default_scale() -> None:
+    matrix = QRMatrix.encode("HI")
+    root = ET.fromstring(render_svg(matrix))
+    assert root.attrib["width"] == str(matrix.width * DEFAULT_SCALE)
+
+
+def test_svg_invert_equals_rendering_the_inverted_matrix() -> None:
+    matrix = QRMatrix.encode("HELLO")
+    assert render_svg(matrix, invert=True) == render_svg(matrix.inverted())
+
+
+def test_svg_path_has_one_command_per_dark_module() -> None:
+    matrix = _matrix([[True, False], [False, True]])
+    assert render_svg(matrix).count("M") == 2
+
+
+def test_svg_all_light_matrix_has_empty_path() -> None:
+    assert 'd=""' in render_svg(_matrix([[False, False], [False, False]]))
+
+
+@pytest.mark.parametrize("scale", [0, -1])
+def test_svg_rejects_non_positive_scale(scale: int) -> None:
+    with pytest.raises(CuereError):
+        _ = render_svg(QRMatrix.encode("HI"), scale=scale)
 
 
 # ── dimensions ───────────────────────────────────────────────────

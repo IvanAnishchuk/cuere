@@ -14,11 +14,16 @@ added there (see meson-python gotchas below). Modules and what they own:
 - `matrix.py` — the segno-wrapping encoder and the **only** module that imports
   segno. `QRMatrix` (frozen), `ECLevel`, `coerce`, and the shared
   `Encodable` / `EncodeOptions` encode-option types.
-- `render.py` — pure-stdlib glyph renderers. `RenderMode`, `render_matrix`,
-  `render_width` / `render_height`, `coerce_mode`, and the `ANSI_FG`/`ANSI_BG`
-  color constants. No terminal interaction.
+- `render.py` — pure-stdlib glyph and vector renderers. `RenderMode`,
+  `render_matrix`, `render_svg`, `render_width` / `render_height`, `coerce_mode`,
+  and the `ANSI_FG`/`ANSI_BG` / `DEFAULT_SCALE` / `SVG_DARK`/`SVG_LIGHT`
+  constants. No terminal interaction.
 - `terminal.py` — the high-level API: `render`, `show`, `fits`, and the narrow
   `SupportsWrite` sink protocol. Owns terminal-size and NO_COLOR/tty logic.
+- `output.py` — the output-format dispatcher: `OutputFormat`, `render_bytes` /
+  `save`, `coerce_format`, the `SupportsWriteBytes` sink, and the PNG renderer.
+  The **only** module that imports Pillow (lazily, for the `cuere[image]`
+  extra). `UnknownFormatError` / `MissingDependencyError` live in `errors.py`.
 - `wallet.py` — crypto-URI helpers: the payment-request builders `bitcoin_uri`
   (BIP-21), `lightning_uri` (BOLT11/LNURL/BOLT12), `ethereum_uri` /
   `erc20_transfer_uri` (EIP-681); the `optimize_uri` QR-alphanumeric optimizer
@@ -78,10 +83,13 @@ install's import hook otherwise shadows the mutated tree. See
   ruff ruleset is intentionally **off**: it forces the opposite and creates churn
   (TYPE_CHECKING blocks → quoted `cast()` types → CodeQL false positives). Don't
   re-enable it or re-introduce the blocks.
-- **`import cuere` must not import `rich` or `typer`.** Keep them out of
-  `cuere/__init__` and the core modules; `cuere.rich`/`cuere.cli` import them and
-  load only on demand. `test_importing_cuere_does_not_import_rich_or_typer`
-  guards this — it is the one deferral that genuinely matters.
+- **`import cuere` must not import `rich`, `typer`, or `PIL`/Pillow.** Keep them
+  out of `cuere/__init__` and the core modules; `cuere.rich`/`cuere.cli` import
+  rich/typer and load only on demand, and `cuere.output` imports Pillow lazily
+  inside `_render_png` (the `cuere[image]` PNG extra). The
+  `test_importing_cuere_does_not_import_rich_or_typer` and
+  `test_importing_cuere_does_not_import_pillow` tests guard this — the deferrals
+  that genuinely matter.
 
 ## meson-python gotchas
 

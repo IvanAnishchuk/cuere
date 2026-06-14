@@ -28,7 +28,8 @@ and helpers for crypto-wallet URIs.
 ## Install
 
 ```bash
-uv add cuere        # or: pip install cuere
+uv add cuere          # or: pip install cuere
+uv add 'cuere[image]' # optional: adds PNG export (pulls in Pillow)
 ```
 
 ## Use
@@ -101,6 +102,21 @@ m.modules   # tuple[tuple[bool, ...], ...] — True is a dark module
 m.size      # side length, quiet zone included
 ```
 
+Export to a file or bytes — `save()` writes the chosen format (inferred from the
+path suffix when not given), `render_bytes()` returns the raw bytes:
+
+```python
+from cuere import save, render_bytes
+
+save("HELLO", "code.svg")                       # vector SVG, format from suffix
+save("bitcoin:BC1Q...", "pay.png", scale=8)     # raster PNG (needs cuere[image])
+png_bytes = render_bytes("HELLO", format="png") # -> bytes, no file
+```
+
+The formats are `text` (the terminal rendering), `svg`, and `png` (needs the
+`cuere[image]` extra). See [output formats](docs/output-formats.md) for the full
+model.
+
 CLI:
 
 ```bash
@@ -109,6 +125,8 @@ echo "some payload" | cuere
 cuere --input payload.txt              # read the payload from a file
 cuere 12345 --micro                    # compact Micro QR for a tiny payload
 cuere HELLO --mode ansi --invert --border 2 --error M
+cuere HELLO --output svg:code.svg      # write SVG to a file (default stays terminal)
+cuere HELLO -o png:- --scale 8 > code.png   # PNG to stdout (needs cuere[image])
 ```
 
 ### Rendering modes

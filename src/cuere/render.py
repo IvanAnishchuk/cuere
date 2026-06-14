@@ -24,6 +24,24 @@ ANSI_BG = 231
 ANSI_PREFIX = f"\x1b[38;5;{ANSI_FG};48;5;{ANSI_BG}m"
 ANSI_RESET = "\x1b[0m"
 
+# Defaults for the pixel-grid renderers (SVG here, PNG in cuere.output): one
+# module is a square, black on white. DEFAULT_SCALE is pixels per module.
+DEFAULT_SCALE = 10
+SVG_DARK = "#000000"
+SVG_LIGHT = "#ffffff"
+_INVALID_SCALE = "scale must be a positive integer (pixels per module)"
+
+
+def check_scale(scale: int) -> None:
+    """Reject a non-positive pixels-per-module ``scale``.
+
+    A zero or negative scale would yield a blank or negatively-sized image, so
+    it raises a :class:`~cuere.errors.CuereError` (never a bare ``ValueError``),
+    keeping the contract the rest of the API holds.
+    """
+    if scale < 1:
+        raise CuereError(_INVALID_SCALE)
+
 
 class RenderMode(enum.StrEnum):
     """How a QR matrix is turned into text."""
@@ -70,6 +88,36 @@ def render_matrix(
         if mode is RenderMode.ANSI:
             lines = [f"{ANSI_PREFIX}{line}{ANSI_RESET}" for line in lines]
     return "\n".join(lines)
+
+
+def render_svg(matrix: QRMatrix, *, scale: int = DEFAULT_SCALE, invert: bool = False) -> str:
+    """Render ``matrix`` as a standalone SVG document, one module per unit.
+
+    Dark modules become a single ``<path>`` over a light background ``<rect>``.
+    ``viewBox`` is the module grid, so the path coordinates stay small integers;
+    ``width``/``height`` scale it to ``scale`` pixels per module.
+    ``shape-rendering="crispEdges"`` keeps module borders sharp (anti-aliasing
+    blur hurts scanning). ``invert`` flips dark and light via
+    ``matrix.inverted()`` — the same single code path the glyph renderers use.
+    """
+    check_scale(scale)
+    if invert:
+        matrix = matrix.inverted()
+    cols, rows = matrix.width, matrix.height
+    path = "".join(
+        f"M{x} {y}h1v1h-1z"
+        for y, row in enumerate(matrix.modules)
+        for x, dark in enumerate(row)
+        if dark
+    )
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{cols * scale}"'
+        f' height="{rows * scale}" viewBox="0 0 {cols} {rows}" shape-rendering="crispEdges">\n'
+        f'<rect width="{cols}" height="{rows}" fill="{SVG_LIGHT}"/>\n'
+        f'<path d="{path}" fill="{SVG_DARK}"/>\n'
+        "</svg>\n"
+    )
 
 
 def render_width(matrix: QRMatrix, mode: RenderMode = RenderMode.HALF) -> int:

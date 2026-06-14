@@ -9,7 +9,8 @@ import typer
 from cuere import __version__
 from cuere.errors import CuereError
 from cuere.matrix import ECLevel
-from cuere.render import RenderMode
+from cuere.output import save
+from cuere.render import DEFAULT_SCALE, RenderMode
 from cuere.terminal import show
 from cuere.wallet import optimize_uri
 
@@ -64,6 +65,21 @@ def main(
     force: Annotated[
         bool, typer.Option("--force", help="Emit ANSI colors even when NO_COLOR/not a tty.")
     ] = False,
+    output: Annotated[
+        str | None,
+        typer.Option(
+            "--output",
+            "-o",
+            metavar="FORMAT[:PATH]",
+            help=(
+                "Write FORMAT (text/svg/png) to PATH instead of the terminal;"
+                + " PATH '-' or omitted means stdout. PNG needs the cuere[image] extra."
+            ),
+        ),
+    ] = None,
+    scale: Annotated[
+        int, typer.Option("--scale", help="Pixels per module for svg/png output.")
+    ] = DEFAULT_SCALE,
     _version: Annotated[
         bool,
         typer.Option("--version", callback=_version_callback, is_eager=True),
@@ -79,17 +95,35 @@ def main(
             payload = data
         if optimize:
             payload = optimize_uri(payload)
-        show(
-            payload,
-            mode=mode,
-            invert=invert,
-            border=border,
-            error=error,
-            micro=micro,
-            boost_error=boost_error,
-            on_too_wide="error" if check_width else "render",
-            force=force,
-        )
+        if output is None:
+            show(
+                payload,
+                mode=mode,
+                invert=invert,
+                border=border,
+                error=error,
+                micro=micro,
+                boost_error=boost_error,
+                on_too_wide="error" if check_width else "render",
+                force=force,
+            )
+        else:
+            # FORMAT[:PATH]; a missing path or '-' means stdout. save() owns the
+            # render-and-write so the CLI and library share one code path.
+            fmt, _, dest = output.partition(":")
+            target = sys.stdout.buffer if dest in ("", "-") else dest
+            save(
+                payload,
+                target,
+                format=fmt,
+                mode=mode,
+                invert=invert,
+                scale=scale,
+                border=border,
+                error=error,
+                micro=micro,
+                boost_error=boost_error,
+            )
     except (CuereError, OSError, UnicodeDecodeError) as exc:
         # UnicodeDecodeError (a ValueError, not an OSError) fires when --input or
         # stdin holds non-UTF-8 bytes; surface it as a clean error, not a traceback.

@@ -7,9 +7,17 @@ URIs.
 
 import importlib.metadata
 
-from cuere.errors import CuereError, EncodingError, WalletURIError, WidthError
+from cuere.errors import (
+    CuereError,
+    EncodingError,
+    MissingDependencyError,
+    UnknownFormatError,
+    WalletURIError,
+    WidthError,
+)
 from cuere.matrix import ECLevel, QRMatrix
-from cuere.render import RenderMode, render_height, render_matrix, render_width
+from cuere.output import OutputFormat, SupportsWriteBytes, render_bytes, save
+from cuere.render import RenderMode, render_height, render_matrix, render_svg, render_width
 from cuere.terminal import SupportsWrite, fits, render, show
 from cuere.wallet import (
     SchemeCase,
@@ -26,10 +34,14 @@ __all__ = [
     "CuereError",
     "ECLevel",
     "EncodingError",
+    "MissingDependencyError",
+    "OutputFormat",
     "QRMatrix",
     "RenderMode",
     "SchemeCase",
     "SupportsWrite",
+    "SupportsWriteBytes",
+    "UnknownFormatError",
     "WalletURIError",
     "WidthError",
     "__version__",
@@ -41,9 +53,12 @@ __all__ = [
     "lightning_uri",
     "optimize_uri",
     "render",
+    "render_bytes",
     "render_height",
     "render_matrix",
+    "render_svg",
     "render_width",
+    "save",
     "scheme_case",
     "show",
 ]

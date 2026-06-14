@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `ethereum_uri()` and `erc20_transfer_uri()` — typed
+  [EIP-681](https://eips.ethereum.org/EIPS/eip-681) `ethereum:` request builders.
+  `ethereum_uri(address, *, value=None, chain_id=None, gas_limit=None,
+  gas_price=None)` builds a native payment (`value` in **wei**, matching the
+  spec); `erc20_transfer_uri(token, *, to, amount, ...)` builds the ERC-20
+  `transfer(address,uint256)` form (`amount` in the token's base units).
+  Addresses are validated structurally as `0x` + 40 hex digits with their
+  EIP-55 checksum case preserved (so these URIs must never go through
+  `optimize_uri`); numeric arguments are positive `uint256` integers. Invalid
+  input raises `WalletURIError`. Documented in `docs/cookbook.md`.
+- `docs/bip-21.md` and `docs/eip-681.md` — condensed summaries of the wallet-URI
+  standards cuere implements (BIP-21/BIP-173 for `bitcoin_uri`; EIP-681/EIP-55/
+  EIP-155 and ERC-20 `transfer` for the ethereum builders).
 - `bitcoin_uri()` — a typed BIP-21 `bitcoin:` payment-request builder
   (`bitcoin_uri(address, *, amount=None, label=None, message=None)`). It
   validates the address alphabet, renders `amount` as a plain BTC decimal

@@ -8,6 +8,11 @@ transformation is restricted to those known case-insensitive schemes: it is
 never applied to schemes whose case is significant (e.g. ``ethereum:`` with
 EIP-55 checksums), to mixed-case URIs, or to URIs whose uppercased form is not
 QR-alphanumeric (e.g. anything with a ``?...`` query string).
+
+This module also builds payment-request URIs: :func:`bitcoin_uri` (BIP-21) and
+the EIP-681 :func:`ethereum_uri` / :func:`erc20_transfer_uri`. The ethereum
+builders emit byte-mode, case-significant URIs and must never be passed through
+:func:`optimize_uri`. See ``docs/bip-21.md`` and ``docs/eip-681.md``.
 """
 
 import re
@@ -127,3 +132,162 @@ def bitcoin_uri(
     if params:
         uri = f"{uri}?{'&'.join(params)}"
     return uri
+
+
+# --- EIP-681 (ethereum: / ERC-20 transfer) --------------------------------
+
+# An ethereum address is "0x" followed by 20 bytes = 40 hex digits. The CASE of
+# those hex digits is significant: it carries the optional EIP-55 checksum, so
+# the address is kept verbatim and never upper/lower-cased. (That is also why
+# optimize_uri excludes the ethereum: scheme — see _CASE_INSENSITIVE_SCHEMES.)
+# This is a structural check only, NOT an EIP-55 checksum verification: that
+# needs keccak-256, a crypto dependency cuere deliberately does not pull in —
+# exactly as _BITCOIN_ADDRESS does not verify a base58check/bech32 checksum.
+_ETH_ADDRESS = re.compile(r"0x[0-9a-fA-F]{40}")
+
+# value (wei), gas price (wei), gas limit, chain id, and an ERC-20 amount are
+# all EVM uint256 words; reject anything that would not fit on-chain.
+_MAX_UINT256 = 2**256 - 1
+
+# Rejection reasons, kept as named constants (never raise-site string literals)
+# so ruff TRY003 stays happy; _reason() composes the field-qualified message.
+_ERR_BAD_ETH_ADDRESS = "is not a 0x-prefixed 40-hex-digit ethereum address"
+_ERR_UINT_BOOL = "must be an integer, not a bool"
+_ERR_UINT_NOT_INTEGER = "must be a whole number"
+_ERR_UINT_NEGATIVE = "must be a non-negative integer"
+_ERR_UINT_TOO_LARGE = "does not fit in a uint256"
+
+
+def _reason(field: str, problem: str) -> str:
+    """Compose a field-qualified ``WalletURIError`` reason (e.g. ``"value ..."``).
+
+    Built in a helper rather than inlined at the raise site so no message string
+    literal is passed to the exception constructor — the pattern ruff TRY003
+    enforces (see :class:`~cuere.errors.WalletURIError`).
+    """
+    return f"{field} {problem}"
+
+
+def _coerce_uint256(value: int | Decimal | str, field: str) -> int:
+    """Validate ``value`` as an EVM ``uint256`` and return it as ``int``.
+
+    Accepts :class:`int`, a base-10 :class:`str`, or an integral
+    :class:`~decimal.Decimal` (``bool`` is rejected even though it is an ``int``;
+    a non-integral, non-finite, negative, or out-of-uint256-range value is
+    rejected too). The accepted range is the full ``uint256`` domain
+    ``0 … 2**256 - 1`` — ``0`` is valid (it is the EVM word's natural default),
+    unlike a BIP-21 ``amount`` which must be positive. ``field`` names the
+    offending parameter for the message. Raises
+    :class:`~cuere.errors.WalletURIError` on any failure.
+    """
+    if isinstance(value, bool):  # bool is an int subtype; True would become 1
+        raise WalletURIError(_reason(field, _ERR_UINT_BOOL), value)
+    try:
+        number = Decimal(value)
+    except InvalidOperation as exc:
+        raise WalletURIError(_reason(field, _ERR_UINT_NOT_INTEGER), value) from exc
+    if not number.is_finite() or number != number.to_integral_value():
+        raise WalletURIError(_reason(field, _ERR_UINT_NOT_INTEGER), value)
+    integer = int(number)
+    if integer < 0:
+        raise WalletURIError(_reason(field, _ERR_UINT_NEGATIVE), value)
+    if integer > _MAX_UINT256:
+        raise WalletURIError(_reason(field, _ERR_UINT_TOO_LARGE), value)
+    return integer
+
+
+def _eth_address(address: str, field: str) -> str:
+    """Return ``address`` unchanged if it is a structurally valid 0x address.
+
+    Case is preserved verbatim (it carries the EIP-55 checksum when mixed-case;
+    an all-lower/all-upper address simply has no checksum). Raises
+    :class:`~cuere.errors.WalletURIError` otherwise.
+    """
+    if not _ETH_ADDRESS.fullmatch(address):
+        raise WalletURIError(_reason(field, _ERR_BAD_ETH_ADDRESS), address)
+    return address
+
+
+def _chain_and_gas(
+    chain_id: int | None,
+    gas_limit: int | None,
+    gas_price: int | Decimal | str | None,
+) -> tuple[str, list[str]]:
+    """Build the ``@<chain_id>`` suffix and the ``gasLimit``/``gasPrice`` params.
+
+    Shared by both EIP-681 builders: ``chain_id`` (if given) becomes the
+    ``@<chain_id>`` that sits between the address and the path/query, and the
+    gas parameters are appended (in EIP-681 order) to the query.
+    """
+    suffix = f"@{_coerce_uint256(chain_id, 'chain_id')}" if chain_id is not None else ""
+    params: list[str] = []
+    if gas_limit is not None:
+        params.append(f"gasLimit={_coerce_uint256(gas_limit, 'gas_limit')}")
+    if gas_price is not None:
+        params.append(f"gasPrice={_coerce_uint256(gas_price, 'gas_price')}")
+    return suffix, params
+
+
+def ethereum_uri(
+    address: str,
+    *,
+    value: int | Decimal | str | None = None,
+    chain_id: int | None = None,
+    gas_limit: int | None = None,
+    gas_price: int | Decimal | str | None = None,
+) -> str:
+    """Build an EIP-681 ``ethereum:`` native-payment URI.
+
+    ``address`` is the recipient, validated structurally as ``0x`` + 40 hex
+    digits with its case preserved (it carries the EIP-55 checksum when
+    mixed-case). ``value`` is the amount in **wei** (1 ETH = 10\\ :sup:`18` wei),
+    a non-negative integer ``uint256``; ``gas_price`` is likewise in wei and
+    ``gas_limit`` is a gas-unit count.
+    ``chain_id`` (EIP-155, e.g. ``1`` for mainnet) is emitted as ``@<chain_id>``.
+    Parameters left as ``None`` are omitted. Invalid input raises
+    :class:`~cuere.errors.WalletURIError`.
+
+    The result is a plain ``str`` to pass to ``render`` / ``show``. Do **not**
+    run it through :func:`optimize_uri`: the EIP-55 checksum is case-significant,
+    so uppercasing would corrupt the address (``optimize_uri`` already refuses
+    the ``ethereum:`` scheme for this reason).
+    """
+    target = _eth_address(address, "address")
+    suffix, params = _chain_and_gas(chain_id, gas_limit, gas_price)
+    query: list[str] = []
+    if value is not None:
+        query.append(f"value={_coerce_uint256(value, 'value')}")
+    query.extend(params)
+    uri = f"ethereum:{target}{suffix}"
+    if query:
+        uri = f"{uri}?{'&'.join(query)}"
+    return uri
+
+
+def erc20_transfer_uri(
+    token: str,
+    *,
+    to: str,
+    amount: int | Decimal | str,
+    chain_id: int | None = None,
+    gas_limit: int | None = None,
+    gas_price: int | Decimal | str | None = None,
+) -> str:
+    """Build an EIP-681 ERC-20 ``transfer`` URI: ``ethereum:<token>/transfer?…``.
+
+    Encodes a call to the token's ``transfer(address,uint256)`` function.
+    ``token`` is the ERC-20 contract address and ``to`` the recipient, both
+    validated as ``0x`` + 40 hex digits with case preserved. ``amount`` is a
+    non-negative integer in the token's **base units** (its own ``decimals`` —
+    which this library cannot know — so no scaling is applied); it is emitted as
+    the ``uint256`` argument. ``chain_id`` / ``gas_limit`` / ``gas_price`` behave as
+    in :func:`ethereum_uri`. Invalid input raises
+    :class:`~cuere.errors.WalletURIError`.
+
+    As with :func:`ethereum_uri`, never pass the result to :func:`optimize_uri`.
+    """
+    target = _eth_address(token, "token")
+    recipient = _eth_address(to, "to")
+    suffix, params = _chain_and_gas(chain_id, gas_limit, gas_price)
+    query = [f"address={recipient}", f"uint256={_coerce_uint256(amount, 'amount')}", *params]
+    return f"ethereum:{target}{suffix}/transfer?{'&'.join(query)}"

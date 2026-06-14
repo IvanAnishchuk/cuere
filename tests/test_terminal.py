@@ -187,6 +187,13 @@ def test_ansi_kept_on_tty() -> None:
 
 
 @pytest.mark.usefixtures("no_color")
+def test_render_ansi_keeps_color_under_no_color() -> None:
+    # The NO_COLOR / non-tty fallback lives only in `show`; the pure `render`
+    # function always emits the SGR codes for ANSI mode, env regardless.
+    assert "\x1b[" in render("HELLO", mode="ansi")
+
+
+@pytest.mark.usefixtures("no_color")
 def test_ansi_downgrades_under_no_color() -> None:
     out = _FakeTty()
     show("HELLO", mode="ansi", out=out, width=100)

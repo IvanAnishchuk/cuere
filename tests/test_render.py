@@ -60,6 +60,27 @@ def test_empty_matrix_renders_empty() -> None:
     assert render_matrix(_matrix([])) == ""
 
 
+def test_empty_payload_renders_a_valid_code() -> None:
+    # An empty payload is encodable (version 1), so it must render as a normal
+    # rectangular half-block code with dark modules, not an empty string.
+    out = render("")
+    lines = out.split("\n")
+    assert len(lines) == render_height(QRMatrix.encode(""))
+    assert len({len(line) for line in lines}) == 1
+    assert {"▀", "▄", "█"} & set(out)  # has ink, not just quiet zone
+
+
+@pytest.mark.parametrize("mode", list(RenderMode))
+def test_extreme_border_renders_rectangular_with_blank_frame(mode: RenderMode) -> None:
+    # A large quiet zone stays rectangular and the outermost rendered row is
+    # pure quiet zone (blank once any SGR wrapper is stripped).
+    out = render("HI", mode=mode, border=20)
+    lines = out.split("\n")
+    assert len({len(line) for line in lines}) == 1
+    top = lines[0].replace(ANSI_PREFIX, "").replace(ANSI_RESET, "")
+    assert set(top) <= {" "}
+
+
 # ── dimensions ───────────────────────────────────────────────────
 
 

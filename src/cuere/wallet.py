@@ -4,17 +4,21 @@ QR alphanumeric mode covers only ``0-9 A-Z space $%*+-./:`` but produces a
 much smaller code than byte mode. bech32 payloads (BIP-173) and their URI
 schemes are case-insensitive, so a fully lowercase ``bitcoin:bc1...`` or
 ``lightning:lnbc...`` URI can be uppercased wholesale to qualify. The
-transformation is restricted to those known case-insensitive schemes: it is
-never applied to schemes whose case is significant (e.g. ``ethereum:`` with
-EIP-55 checksums), to mixed-case URIs, or to URIs whose uppercased form is not
-QR-alphanumeric (e.g. anything with a ``?...`` query string).
+transformation is restricted to those known case-insensitive schemes
+(:class:`SchemeCase`): it is never applied to schemes whose case is significant
+(``ethereum:`` with EIP-55 checksums, ``wc:`` WalletConnect), to mixed-case
+URIs, or to URIs whose uppercased form is not QR-alphanumeric (e.g. anything
+with a ``?...`` query string). :func:`scheme_case` exposes that classification.
 
-This module also builds payment-request URIs: :func:`bitcoin_uri` (BIP-21) and
-the EIP-681 :func:`ethereum_uri` / :func:`erc20_transfer_uri`. The ethereum
-builders emit byte-mode, case-significant URIs and must never be passed through
-:func:`optimize_uri`. See ``docs/bip-21.md`` and ``docs/eip-681.md``.
+This module also builds payment-request URIs: :func:`bitcoin_uri` (BIP-21),
+:func:`lightning_uri` (BOLT11 / LNURL / BOLT12), and the EIP-681
+:func:`ethereum_uri` / :func:`erc20_transfer_uri`. The ethereum builders emit
+byte-mode, case-significant URIs and must never be passed through
+:func:`optimize_uri`. See ``docs/bip-21.md``, ``docs/lightning-uri.md``, and
+``docs/eip-681.md``.
 """
 
+import enum
 import re
 from decimal import Decimal, InvalidOperation
 from urllib.parse import quote
@@ -23,9 +27,37 @@ from cuere.errors import WalletURIError
 
 _QR_ALPHANUMERIC = frozenset("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:")
 
-# Schemes whose payloads are case-insensitive (bech32), so uppercasing the
-# whole URI is lossless. Deliberately excludes ethereum: and arbitrary schemes.
+
+class SchemeCase(enum.Enum):
+    """How a URI scheme's payload responds to case folding.
+
+    This is what decides whether :func:`optimize_uri` may uppercase a URI to
+    reach QR *alphanumeric* mode (a smaller code): only an :attr:`INSENSITIVE`
+    scheme is ever folded, the other two are always returned verbatim.
+    """
+
+    INSENSITIVE = "insensitive"
+    """bech32 payload (BIP-173) — case carries no meaning, so uppercasing the
+    whole URI is lossless. ``bitcoin:`` and ``lightning:`` (BOLT11 / LNURL)."""
+    SIGNIFICANT = "significant"
+    """A scheme cuere knows to be case-significant — folding would corrupt it.
+    ``ethereum:`` (EIP-55 checksum case) and ``wc:`` (WalletConnect: a
+    case-significant relay protocol, a percent-encoded bridge URL, and an opaque
+    pairing key)."""
+    UNKNOWN = "unknown"
+    """A scheme cuere does not recognize, or a string with no scheme at all.
+    Treated like :attr:`SIGNIFICANT` — never folded — because cuere cannot prove
+    the transform is lossless."""
+
+
+# Schemes whose payloads are case-insensitive (bech32): uppercasing the whole
+# URI is lossless, so optimize_uri may shrink them to QR-alphanumeric mode.
 _CASE_INSENSITIVE_SCHEMES = frozenset({"bitcoin", "lightning"})
+
+# Schemes cuere recognizes as case-significant and therefore never folds. Listed
+# explicitly (rather than leaning on the unknown-scheme default) so the intent —
+# "we know about ethereum:/wc: and deliberately leave them alone" — is pinned.
+_CASE_SIGNIFICANT_SCHEMES = frozenset({"ethereum", "wc"})
 
 # A bitcoin address is base58 (legacy/P2SH) or bech32/bech32m (SegWit/Taproot);
 # both alphabets, including the bech32 human-readable prefix and separator, are
@@ -52,17 +84,37 @@ def is_qr_alphanumeric(data: str) -> bool:
     return bool(data) and all(char in _QR_ALPHANUMERIC for char in data)
 
 
+def scheme_case(uri: str) -> SchemeCase:
+    """Classify ``uri`` by how :func:`optimize_uri` treats its scheme's case.
+
+    The scheme is the text before the first ``:`` (compared case-insensitively,
+    per RFC 3986). A string with no ``:`` — hence no scheme — is
+    :attr:`SchemeCase.UNKNOWN`. Only an :attr:`SchemeCase.INSENSITIVE` scheme is
+    a candidate for optimization; see :func:`optimize_uri`.
+    """
+    scheme, sep, _ = uri.partition(":")
+    if not sep:
+        return SchemeCase.UNKNOWN
+    scheme = scheme.lower()
+    if scheme in _CASE_INSENSITIVE_SCHEMES:
+        return SchemeCase.INSENSITIVE
+    if scheme in _CASE_SIGNIFICANT_SCHEMES:
+        return SchemeCase.SIGNIFICANT
+    return SchemeCase.UNKNOWN
+
+
 def optimize_uri(uri: str) -> str:
     """Uppercase a bech32-scheme URI when that provably shrinks its QR code.
 
-    Applied only when **all** of these hold: the scheme is known
-    case-insensitive (``bitcoin:`` or ``lightning:``), the URI is already
-    entirely lowercase (so uppercasing cannot destroy significant case), and
-    the uppercased form is fully QR-alphanumeric. Idempotent; returns the
-    input unchanged in every other case.
+    Applied only when **all** of these hold: the scheme is case-insensitive
+    (:attr:`SchemeCase.INSENSITIVE` — ``bitcoin:`` or ``lightning:``), the URI
+    is already entirely lowercase (so uppercasing cannot destroy significant
+    case), and the uppercased form is fully QR-alphanumeric (so a query string
+    or any other non-alphanumeric byte rules it out). Idempotent; returns the
+    input unchanged in every other case — including case-significant
+    (``ethereum:``, ``wc:``) and unrecognized schemes.
     """
-    scheme, sep, _ = uri.partition(":")
-    if not sep or scheme.lower() not in _CASE_INSENSITIVE_SCHEMES:
+    if scheme_case(uri) is not SchemeCase.INSENSITIVE:
         return uri
     if uri != uri.lower():
         return uri
@@ -132,6 +184,41 @@ def bitcoin_uri(
     if params:
         uri = f"{uri}?{'&'.join(params)}"
     return uri
+
+
+# --- lightning: (BOLT11 / LNURL / BOLT12) ---------------------------------
+
+# A lightning: payload is a bech32 string (BIP-173) whose human-readable part
+# begins "ln" (lnbc/lntb/… invoices, lnurl1…, lno1… offers). bech32 is
+# case-insensitive but never MIXED-case, so accept an all-lower or an all-upper
+# run. Like _BITCOIN_ADDRESS this is a STRUCTURAL check only — a single-case run
+# of ASCII alphanumerics beginning "ln"; the bech32 data charset is a subset of
+# that, and the checksum is not verified (that needs the bech32 polynomial, a
+# dependency cuere deliberately does not pull in).
+_LIGHTNING_PAYLOAD = re.compile(r"ln[0-9a-z]+|LN[0-9A-Z]+")
+
+_ERR_BAD_LIGHTNING = "not a lightning payload (BOLT11 invoice, LNURL, or BOLT12 offer)"
+
+
+def lightning_uri(payload: str) -> str:
+    """Build a ``lightning:`` URI from a bech32 Lightning payload.
+
+    ``payload`` is a BOLT11 invoice (``lnbc…`` / ``lntb…`` / …), an LNURL
+    (``lnurl1…``), or a BOLT12 offer (``lno1…``) — any bech32 string whose
+    human-readable part begins ``ln``. It is validated **structurally** — a
+    single-case run of ASCII alphanumerics beginning ``ln`` (the bech32 charset
+    is a subset of that) — but its checksum is not verified, mirroring
+    :func:`bitcoin_uri`. An empty string, a mixed-case payload, or one carrying a
+    ``:`` / ``@`` / query character raises :class:`~cuere.errors.WalletURIError`.
+
+    The result is a plain ``str``. A lowercase payload composes with
+    :func:`optimize_uri`, which uppercases the URI to QR-alphanumeric mode for a
+    smaller code (``lightning:`` is :attr:`SchemeCase.INSENSITIVE`); pass the
+    result to ``render`` / ``show`` to draw it.
+    """
+    if not _LIGHTNING_PAYLOAD.fullmatch(payload):
+        raise WalletURIError(_ERR_BAD_LIGHTNING, payload)
+    return f"lightning:{payload}"
 
 
 # --- EIP-681 (ethereum: / ERC-20 transfer) --------------------------------

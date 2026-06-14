@@ -19,7 +19,11 @@ added there (see meson-python gotchas below). Modules and what they own:
   color constants. No terminal interaction.
 - `terminal.py` — the high-level API: `render`, `show`, `fits`, and the narrow
   `SupportsWrite` sink protocol. Owns terminal-size and NO_COLOR/tty logic.
-- `wallet.py` — crypto-URI helpers: `optimize_uri`, `is_qr_alphanumeric`.
+- `wallet.py` — crypto-URI helpers: the payment-request builders `bitcoin_uri`
+  (BIP-21), `lightning_uri` (BOLT11/LNURL/BOLT12), `ethereum_uri` /
+  `erc20_transfer_uri` (EIP-681); the `optimize_uri` QR-alphanumeric optimizer
+  with its typed `SchemeCase` / `scheme_case` classifier; and
+  `is_qr_alphanumeric`. `WalletURIError` lives in `errors.py`.
 - `rich.py` — the Rich renderable `QRCode` (imports `rich`; loads on demand).
 - `cli.py` + `__main__.py` — the typer CLI `app` (imports `typer`; on demand).
 - `errors.py` — exception hierarchy: `CuereError` and subclasses.

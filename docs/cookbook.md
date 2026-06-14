@@ -61,6 +61,49 @@ through is always safe.
 
 For the underlying format see the [BIP-21 summary](bip-21.md).
 
+## Show a Lightning invoice (BOLT11 / LNURL)
+
+[`lightning_uri`](../src/cuere/wallet.py) wraps a bech32 Lightning payload — a
+BOLT11 invoice (`lnbc…`), an LNURL (`lnurl1…`), or a BOLT12 offer (`lno1…`) — in
+a `lightning:` URI. Like `bitcoin_uri` it validates the payload structurally (the
+bech32 alphabet, never mixed-case) but does not verify its checksum:
+
+```python
+from cuere import lightning_uri, optimize_uri, show
+
+uri = lightning_uri("lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqf...")
+# lightning:lnbc1pvjluez...
+
+show(optimize_uri(uri))   # BOLT11 is bech32, so optimize_uri shrinks the code
+```
+
+A `lightning:` URI is bech32 and case-insensitive (just like a bare `bitcoin:`
+address), so `optimize_uri` uppercases a lowercase one to reach QR *alphanumeric*
+mode for a smaller, faster-to-scan code. Lightning *addresses* (`user@domain`)
+are **not** bech32 and are out of scope.
+
+## Which URIs does `optimize_uri` shrink? (`scheme_case`)
+
+`optimize_uri` only ever uppercases a URI whose scheme is case-insensitive.
+[`scheme_case`](../src/cuere/wallet.py) exposes that classification as a typed
+`SchemeCase`, so you can tell *why* a URI will or won't be optimized:
+
+```python
+from cuere import SchemeCase, scheme_case
+
+scheme_case("bitcoin:bc1q...")     # SchemeCase.INSENSITIVE  -> optimize_uri may uppercase
+scheme_case("lightning:lnbc1...")  # SchemeCase.INSENSITIVE
+scheme_case("ethereum:0xAbC...")   # SchemeCase.SIGNIFICANT  -> EIP-55 case matters; left as-is
+scheme_case("wc:topic@2?...")      # SchemeCase.SIGNIFICANT  -> WalletConnect; left as-is
+scheme_case("mailto:hi")           # SchemeCase.UNKNOWN      -> not recognized; left as-is
+```
+
+Only `SchemeCase.INSENSITIVE` URIs are candidates; `optimize_uri` still returns
+them unchanged unless they are also already lowercase and have no query string.
+WalletConnect (`wc:`) is recognized **explicitly** as case-significant — it is a
+one-shot pairing handshake that must be encoded exactly as issued. See
+[lightning-uri.md](lightning-uri.md) for the full scheme model.
+
 ## Show an Ethereum payment request (EIP-681)
 
 [`ethereum_uri`](../src/cuere/wallet.py) builds an

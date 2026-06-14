@@ -47,7 +47,8 @@ class SupportsWriteBytes(Protocol):
     ``str`` nor ``os.PathLike`` carries a ``write`` method.
     """
 
-    def write(self, b: bytes, /) -> object: ...
+    def write(self, b: bytes, /) -> object:
+        """Write ``b`` to the sink; the return value is ignored."""
 
 
 # The optional-extra name and the suffix→format map, kept as module-level
@@ -159,9 +160,9 @@ def _render_png(matrix: QRMatrix, *, scale: int, invert: bool) -> bytes:
     # Expand each module to a square block of side `scale` (L-mode pixels,
     # dark=0, light=255) directly, so the integer upscale needs no resampling.
     lines = [
-        bytes(0 if dark else 255 for dark in row for _ in range(scale)) for row in matrix.modules
+        b"".join((b"\x00" if dark else b"\xff") * scale for dark in row) for row in matrix.modules
     ]
-    pixels = b"".join(line for line in lines for _ in range(scale))
+    pixels = b"".join(line * scale for line in lines)
     image = Image.frombytes("L", (cols * scale, rows * scale), pixels)
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")

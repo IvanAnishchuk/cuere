@@ -13,6 +13,8 @@ from cuere import (
     QRMatrix,
     WalletURIError,
     bitcoin_uri,
+    erc20_transfer_uri,
+    ethereum_uri,
     is_qr_alphanumeric,
     optimize_uri,
     render,
@@ -234,3 +236,167 @@ def test_label_round_trips_through_percent_encoding(label: str) -> None:
     uri = bitcoin_uri(BECH32_ADDRESS, label=label)
     encoded = uri.partition("label=")[2]
     assert unquote(encoded) == label
+
+
+# --- ethereum_uri / erc20_transfer_uri (EIP-681) --------------------------
+
+# A mixed-case (EIP-55 checksummed) address and an all-lowercase one.
+ETH_ADDRESS = "0xfb6916095ca1df60bb79Ce92ce3ea74c37c5d359"
+CONTRACT_ADDRESS = "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+RECIPIENT_ADDRESS = "0x8e23ee67d1332ad560396262c48ffbb01f93d052"
+ONE_ETH_IN_WEI = 10**18
+
+
+def test_bare_ethereum_address_has_no_query() -> None:
+    assert ethereum_uri(ETH_ADDRESS) == f"ethereum:{ETH_ADDRESS}"
+
+
+def test_ethereum_value_is_emitted_as_integer_wei() -> None:
+    uri = ethereum_uri(ETH_ADDRESS, value=2014000000000000000)
+    assert uri == f"ethereum:{ETH_ADDRESS}?value=2014000000000000000"
+
+
+def test_ethereum_checksum_case_is_preserved_verbatim() -> None:
+    # The mixed-case address carries an EIP-55 checksum; it must survive intact
+    # (verbatim, not lower/upper-cased) even alongside a query string.
+    assert any(char.isupper() for char in ETH_ADDRESS)  # the fixture is genuinely mixed-case
+    assert ethereum_uri(ETH_ADDRESS, value=1) == f"ethereum:{ETH_ADDRESS}?value=1"
+
+
+def test_ethereum_chain_id_precedes_the_query() -> None:
+    uri = ethereum_uri(ETH_ADDRESS, value=1, chain_id=1)
+    assert uri == f"ethereum:{ETH_ADDRESS}@1?value=1"
+
+
+def test_ethereum_gas_params_in_fixed_order() -> None:
+    uri = ethereum_uri(ETH_ADDRESS, value=1, gas_limit=21000, gas_price=2000000000)
+    assert uri == f"ethereum:{ETH_ADDRESS}?value=1&gasLimit=21000&gasPrice=2000000000"
+
+
+def test_ethereum_chain_id_with_no_query() -> None:
+    assert ethereum_uri(ETH_ADDRESS, chain_id=137) == f"ethereum:{ETH_ADDRESS}@137"
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (ONE_ETH_IN_WEI, "1000000000000000000"),  # int
+        ("1000000000000000000", "1000000000000000000"),  # base-10 str
+        (Decimal("1000000000000000000"), "1000000000000000000"),  # Decimal
+        (Decimal("1E+18"), "1000000000000000000"),  # integral, sci-notation Decimal
+        (1, "1"),  # one wei, the smallest unit
+        (0, "0"),  # 0 is a valid uint256 (EIP-681 imposes no positivity)
+        (2**256 - 1, str(2**256 - 1)),  # the uint256 ceiling
+    ],
+)
+def test_ethereum_value_accepts_integer_forms(value: int | Decimal | str, expected: str) -> None:
+    assert ethereum_uri(ETH_ADDRESS, value=value) == f"ethereum:{ETH_ADDRESS}?value={expected}"
+
+
+@pytest.mark.parametrize(
+    "address",
+    [
+        "",
+        "fb6916095ca1df60bb79Ce92ce3ea74c37c5d359",  # missing 0x
+        "0xfb6916",  # too short
+        ETH_ADDRESS + "00",  # too long
+        "0xfb6916095ca1df60bb79Ce92ce3ea74c37c5d35g",  # non-hex digit
+        "0Xfb6916095ca1df60bb79Ce92ce3ea74c37c5d359",  # capital X prefix
+        "ethereum:" + ETH_ADDRESS,  # already a URI, not a bare address
+    ],
+)
+def test_invalid_ethereum_address_is_rejected(address: str) -> None:
+    with pytest.raises(WalletURIError):
+        _ = ethereum_uri(address)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        -1,  # negative is outside the uint256 domain
+        Decimal("1.5"),  # not a whole number of wei
+        "1.5",  # likewise as a string
+        "not-a-number",  # unparseable
+        Decimal("NaN"),  # not finite
+        Decimal("Infinity"),  # not finite
+        True,  # bool is an int subtype but never a valid amount
+        False,
+        2**256,  # one past the uint256 ceiling
+    ],
+)
+def test_invalid_ethereum_value_is_rejected(value: int | Decimal | str) -> None:
+    with pytest.raises(WalletURIError):
+        _ = ethereum_uri(ETH_ADDRESS, value=value)
+
+
+@pytest.mark.parametrize("chain_id", [-1, True, 2**256])
+def test_invalid_chain_id_is_rejected(chain_id: int) -> None:
+    with pytest.raises(WalletURIError):
+        _ = ethereum_uri(ETH_ADDRESS, chain_id=chain_id)
+
+
+def test_erc20_transfer_canonical_example() -> None:
+    # The structure of the EIP-681 transfer example: scheme, the /transfer path,
+    # and the address=<to>&uint256=<amount> argument keys in that fixed order.
+    uri = erc20_transfer_uri(CONTRACT_ADDRESS, to=RECIPIENT_ADDRESS, amount=1)
+    assert uri == f"ethereum:{CONTRACT_ADDRESS}/transfer?address={RECIPIENT_ADDRESS}&uint256=1"
+
+
+def test_erc20_transfer_with_chain_id_and_gas() -> None:
+    uri = erc20_transfer_uri(
+        CONTRACT_ADDRESS,
+        to=RECIPIENT_ADDRESS,
+        amount=100,
+        chain_id=1,
+        gas_limit=60000,
+    )
+    assert uri == (
+        f"ethereum:{CONTRACT_ADDRESS}@1/transfer"
+        f"?address={RECIPIENT_ADDRESS}&uint256=100&gasLimit=60000"
+    )
+
+
+def test_erc20_transfer_amount_must_be_a_whole_nonnegative_uint256() -> None:
+    # A fractional or negative token amount is rejected; 0 is a valid uint256.
+    with pytest.raises(WalletURIError):
+        _ = erc20_transfer_uri(CONTRACT_ADDRESS, to=RECIPIENT_ADDRESS, amount=Decimal("1.5"))
+    with pytest.raises(WalletURIError):
+        _ = erc20_transfer_uri(CONTRACT_ADDRESS, to=RECIPIENT_ADDRESS, amount=-1)
+    assert erc20_transfer_uri(CONTRACT_ADDRESS, to=RECIPIENT_ADDRESS, amount=0) == (
+        f"ethereum:{CONTRACT_ADDRESS}/transfer?address={RECIPIENT_ADDRESS}&uint256=0"
+    )
+
+
+def test_erc20_transfer_validates_both_addresses() -> None:
+    with pytest.raises(WalletURIError):  # bad token
+        _ = erc20_transfer_uri("0xnot", to=RECIPIENT_ADDRESS, amount=1)
+    with pytest.raises(WalletURIError):  # bad recipient
+        _ = erc20_transfer_uri(CONTRACT_ADDRESS, to="0xnot", amount=1)
+
+
+def test_ethereum_error_is_a_cuere_error_and_carries_the_value() -> None:
+    assert issubclass(WalletURIError, CuereError)
+    with pytest.raises(WalletURIError) as exc_info:
+        _ = ethereum_uri("0xbad")
+    assert exc_info.value.value == "0xbad"
+
+
+def test_optimize_uri_leaves_built_ethereum_uris_untouched() -> None:
+    # EIP-55 case is significant: optimize_uri must never alter an ethereum: URI.
+    for uri in (
+        ethereum_uri(ETH_ADDRESS, value=ONE_ETH_IN_WEI),
+        erc20_transfer_uri(CONTRACT_ADDRESS, to=RECIPIENT_ADDRESS, amount=1),
+    ):
+        assert optimize_uri(uri) == uri
+
+
+def test_ethereum_uri_composes_with_render_and_encode() -> None:
+    uri = ethereum_uri(ETH_ADDRESS, value=ONE_ETH_IN_WEI, chain_id=1)
+    assert isinstance(render(uri), str)
+    assert isinstance(QRMatrix.encode(uri).version, int)
+
+
+@given(st.integers(min_value=0, max_value=2**256 - 1))
+def test_ethereum_value_round_trips_as_integer_wei(value: int) -> None:
+    uri = ethereum_uri(ETH_ADDRESS, value=value)
+    assert int(uri.partition("value=")[2]) == value

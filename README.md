@@ -69,7 +69,21 @@ bitcoin_uri("bc1q...", amount=Decimal("0.01"), label="Tip") # -> "bitcoin:bc1q..
 optimize_uri("bitcoin:bc1q...")                             # -> "BITCOIN:BC1Q..."
 ```
 
-See the [cookbook](docs/cookbook.md) for the full payment-request recipe.
+For Ethereum, `ethereum_uri()` and `erc20_transfer_uri()` build
+[EIP-681](https://eips.ethereum.org/EIPS/eip-681) `ethereum:` requests — a
+native payment (`value` in wei) or an ERC-20 `transfer`. Their EIP-55 checksums
+are case-significant, so these URIs are never passed through `optimize_uri`:
+
+```python
+from cuere import erc20_transfer_uri, ethereum_uri
+
+ethereum_uri("0xfb69...d359", value=10**16, chain_id=1)         # -> "ethereum:0xfb69...d359@1?value=10000000000000000"
+erc20_transfer_uri("0xA0b8...eB48", to="0x8e23...d052", amount=1_000_000)  # -> "ethereum:0xA0b8...eB48/transfer?address=0x8e23...d052&uint256=1000000"
+```
+
+See the [cookbook](docs/cookbook.md) for the full payment-request recipes, and
+the [BIP-21](docs/bip-21.md) / [EIP-681](docs/eip-681.md) summaries for the
+formats.
 
 Need the raw module grid (to render it yourself or inspect it)? Encode to a
 `QRMatrix`:

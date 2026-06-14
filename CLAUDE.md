@@ -25,6 +25,24 @@ Mutation testing (mutmut) is **dev-only**, run with the project *uninstalled*
 install's import hook otherwise shadows the mutated tree. See
 `docs/mutation-testing.md` for the workflow and accepted equivalent mutants.
 
+## Working on this project
+
+- **Project management runs through the `/solo-pm` skill.** This is a solo /
+  AI-assisted project tracked on a GitHub Projects v2 board; use `/solo-pm` for
+  sprint planning, estimation, status updates, and velocity/calibration rather
+  than improvising a process. It is the PM manual — reach for it whenever you
+  plan, prioritize, estimate, or report on work.
+- **Run `/code-review` before every push / PR, and to audit already-merged
+  code.** It is the real review gate here. The GitHub review bots are
+  unreliable on this repo (CodeRabbit out of credits; Codex/Copilot at usage
+  limits) — a green or empty bot check is **not** an approval, so don't rely on
+  it. `/code-review` is what actually gates a change.
+- **Merge with a merge commit — never squash or rebase.** `main` is protected
+  and squash/rebase are disabled; the only button is merge-commit. Keep PR
+  commits as separate signed, DCO-signed (`git commit -s`) commits so they
+  survive the merge. Admin bypass for the solo-dev self-review block:
+  `gh pr merge <N> --merge --admin`.
+
 ## Typing & imports
 
 - **No `from __future__ import annotations`.** It is unnecessary on 3.13 for

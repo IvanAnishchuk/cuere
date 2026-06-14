@@ -7,11 +7,11 @@ URIs.
 
 import importlib.metadata
 
-from cuere.errors import CuereError, EncodingError, WidthError
+from cuere.errors import CuereError, EncodingError, WalletURIError, WidthError
 from cuere.matrix import ECLevel, QRMatrix
 from cuere.render import RenderMode, render_height, render_matrix, render_width
 from cuere.terminal import SupportsWrite, fits, render, show
-from cuere.wallet import is_qr_alphanumeric, optimize_uri
+from cuere.wallet import bitcoin_uri, is_qr_alphanumeric, optimize_uri
 
 __all__ = [
     "CuereError",
@@ -20,8 +20,10 @@ __all__ = [
     "QRMatrix",
     "RenderMode",
     "SupportsWrite",
+    "WalletURIError",
     "WidthError",
     "__version__",
+    "bitcoin_uri",
     "fits",
     "is_qr_alphanumeric",
     "optimize_uri",

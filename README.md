@@ -53,17 +53,23 @@ from cuere.rich import QRCode
 Console().print(Panel(QRCode("bitcoin:BC1Q..."), title="scan to pay"), justify="center")
 ```
 
-Wallet URIs — `optimize_uri()` uppercases a fully lowercase `bitcoin:` or
-`lightning:` URI (bech32 is case-insensitive per BIP-173) so it encodes in QR
-alphanumeric mode, yielding a smaller code. Other schemes (e.g. `ethereum:`,
-whose EIP-55 checksums are case-significant), mixed-case URIs, and URIs with
-non-alphanumeric query parts are returned unchanged:
+Wallet URIs — `bitcoin_uri()` builds a validated [BIP-21](https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki)
+`bitcoin:` payment request, and `optimize_uri()` uppercases a fully lowercase
+`bitcoin:` or `lightning:` URI (bech32 is case-insensitive per BIP-173) so it
+encodes in QR alphanumeric mode, yielding a smaller code. Other schemes (e.g.
+`ethereum:`, whose EIP-55 checksums are case-significant), mixed-case URIs, and
+URIs with non-alphanumeric query parts are returned unchanged:
 
 ```python
-from cuere import optimize_uri
+from decimal import Decimal
+from cuere import bitcoin_uri, optimize_uri, show
 
-optimize_uri("bitcoin:bc1q...")  # -> "BITCOIN:BC1Q..."
+show(optimize_uri(bitcoin_uri("bc1q...")))                  # smaller, scannable code
+bitcoin_uri("bc1q...", amount=Decimal("0.01"), label="Tip") # -> "bitcoin:bc1q...?amount=0.01&label=Tip"
+optimize_uri("bitcoin:bc1q...")                             # -> "BITCOIN:BC1Q..."
 ```
+
+See the [cookbook](docs/cookbook.md) for the full payment-request recipe.
 
 Need the raw module grid (to render it yourself or inspect it)? Encode to a
 `QRMatrix`:

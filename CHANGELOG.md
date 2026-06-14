@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `bitcoin_uri()` — a typed BIP-21 `bitcoin:` payment-request builder
+  (`bitcoin_uri(address, *, amount=None, label=None, message=None)`). It
+  validates the address alphabet, renders `amount` as a plain BTC decimal
+  (`Decimal`/`int`/`str`; positive, finite, satoshi precision — never `float`),
+  and percent-encodes `label`/`message`. Returns a plain `str` that composes
+  with `optimize_uri` and `render`/`show`. Invalid input raises the new
+  `WalletURIError` (a `CuereError`). Documented in a new `docs/cookbook.md`.
 - Mutation testing with `mutmut` (dev dependency, run locally — not in CI),
   configured in `pyproject.toml` and documented in `docs/mutation-testing.md`,
   with the set of accepted equivalent mutants recorded there. Includes a mypy

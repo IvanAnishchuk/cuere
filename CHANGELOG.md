@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- File and bytes export beyond the terminal. `render_bytes()` returns the
+  encoded `bytes` for a named `OutputFormat`, and `save()` writes them to a path
+  or binary stream — inferring the format from a `.txt` / `.svg` / `.png` suffix
+  when one is not given. Three formats ship: `text` (the terminal glyph
+  rendering, honoring `mode` / `invert`), `svg` (a standalone vector document,
+  also exposed directly as `render_svg()`), and `png` (a raster image that needs
+  the optional `cuere[image]` extra — Pillow, imported lazily so `import cuere`
+  never pulls it in). `scale` sets pixels-per-module for `svg` / `png`. Unknown
+  formats raise `UnknownFormatError`; a missing optional dependency raises
+  `MissingDependencyError` (both `CuereError`s). The CLI gains
+  `--output FORMAT[:PATH]` (PATH `-` or omitted means stdout; the default stays
+  terminal output) and `--scale`. Also adds the `SupportsWriteBytes` sink
+  protocol. Documented in a new `docs/output-formats.md` and the cookbook.
+  Closes #23, #24, #25.
 - `lightning_uri()` — a typed `lightning:` URI builder for bech32 Lightning
   payloads (BOLT11 invoices `lnbc…`, LNURL `lnurl1…`, BOLT12 offers `lno1…`).
   The payload is validated structurally (a single-case run of ASCII

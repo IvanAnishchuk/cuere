@@ -22,7 +22,8 @@ class SupportsWrite(Protocol):
     deliberately narrower than ``typing.IO[str]``.
     """
 
-    def write(self, s: str, /) -> object: ...
+    def write(self, s: str, /) -> object:
+        """Write ``s`` to the sink; the return value is ignored."""
 
 
 def render(

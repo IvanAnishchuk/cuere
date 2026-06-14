@@ -6,6 +6,7 @@ py.install_sources(
     'cli.py',
     'errors.py',
     'matrix.py',
+    'output.py',
     'render.py',
     'rich.py',
     'terminal.py',

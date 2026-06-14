@@ -4,40 +4,34 @@ import os
 import shutil
 import sys
 import warnings
-from typing import IO, Literal
+from typing import IO, Literal, Unpack
 
 from cuere.errors import WidthError
-from cuere.matrix import ECLevel, QRMatrix, coerce
+from cuere.matrix import Encodable, EncodeOptions, coerce
 from cuere.render import RenderMode, coerce_mode, render_height, render_matrix, render_width
 
 OnTooWide = Literal["error", "warn", "render"]
 
 
 def render(
-    data: str | bytes | QRMatrix,
+    data: Encodable,
     *,
     mode: RenderMode | str = RenderMode.HALF,
     invert: bool = False,
-    border: int = 4,
-    error: ECLevel | str = ECLevel.L,
-    micro: bool = False,
-    boost_error: bool = False,
+    **options: Unpack[EncodeOptions],
 ) -> str:
     """Encode ``data`` (unless it is already a :class:`QRMatrix`) and render it."""
-    matrix = coerce(data, border=border, error=error, micro=micro, boost_error=boost_error)
+    matrix = coerce(data, **options)
     return render_matrix(matrix, mode=coerce_mode(mode), invert=invert)
 
 
 def fits(
-    data: str | bytes | QRMatrix,
+    data: Encodable,
     *,
     mode: RenderMode | str = RenderMode.HALF,
-    border: int = 4,
-    error: ECLevel | str = ECLevel.L,
-    micro: bool = False,
-    boost_error: bool = False,
     width: int | None = None,
     height: int | None = None,
+    **options: Unpack[EncodeOptions],
 ) -> bool:
     """Whether the rendered code fits the terminal in both dimensions.
 
@@ -45,7 +39,7 @@ def fits(
     too because a code taller than the screen scrolls out of view. ``width``
     and ``height`` default to the current terminal size.
     """
-    matrix = coerce(data, border=border, error=error, micro=micro, boost_error=boost_error)
+    matrix = coerce(data, **options)
     render_mode = coerce_mode(mode)
     size = shutil.get_terminal_size()
     cols = width if width is not None else size.columns
@@ -54,18 +48,15 @@ def fits(
 
 
 def show(
-    data: str | bytes | QRMatrix,
+    data: Encodable,
     *,
     mode: RenderMode | str = RenderMode.HALF,
     invert: bool = False,
-    border: int = 4,
-    error: ECLevel | str = ECLevel.L,
-    micro: bool = False,
-    boost_error: bool = False,
     out: IO[str] | None = None,
     width: int | None = None,
     on_too_wide: OnTooWide = "error",
     force: bool = False,
+    **options: Unpack[EncodeOptions],
 ) -> None:
     """Render ``data`` and write it to ``out`` (default ``sys.stdout``).
 
@@ -78,7 +69,7 @@ def show(
     pipelines are worse than a theme-dependent code.
     """
     stream = out if out is not None else sys.stdout
-    matrix = coerce(data, border=border, error=error, micro=micro, boost_error=boost_error)
+    matrix = coerce(data, **options)
     render_mode = coerce_mode(mode)
     if render_mode is RenderMode.ANSI and not force and not _ansi_ok(stream):
         render_mode = RenderMode.HALF

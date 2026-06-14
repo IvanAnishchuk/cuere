@@ -41,9 +41,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   been mechanically forcing both patterns plus quoted `typing.cast` types. The
   lazy import of `rich`/`typer` is unaffected (still enforced by `cuere/__init__`
   not importing them, guarded by a test).
+- DRY'd the encode options across the high-level API: `render`/`fits`/`show`/
+  `rich.QRCode`/`coerce` now take `**options: Unpack[EncodeOptions]` (one
+  `EncodeOptions` TypedDict) plus a shared `Encodable` type alias, so the option
+  set and its defaults live once in `QRMatrix.encode`. Calls like
+  `render(data, border=2, error="H")` are unchanged. Also centralized the ANSI
+  color values shared by `render` and `rich`.
 
 ### Fixed
 
+- The CLI now reports a clean `error: …` (exit 1) instead of an uncaught
+  traceback when `--input` or stdin holds non-UTF-8 bytes (`UnicodeDecodeError`
+  is a `ValueError`, so it previously slipped past the `(CuereError, OSError)`
+  handler).
 - Corrected mismatched action version comments (e.g. `setup-uv` was labelled
   `v4.2.0` but pinned to `v8.2.0`; CodeQL `v3.27.5`→`v4.36.2`; gitleaks
   `v2.3.6`→`v3.0.0`). The pinned SHAs are unchanged; the comments now match.

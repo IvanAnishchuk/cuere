@@ -17,8 +17,11 @@ _HALF_GLYPHS = {
     (True, True): "█",  # █
 }
 # Spec-correct polarity regardless of terminal theme: dark modules are black
-# (color 16) on a white (color 231) background.
-ANSI_PREFIX = "\x1b[38;5;16;48;5;231m"
+# (color 16) on a white (color 231) background. These two ANSI 256-colors are the
+# single source of truth — cuere.rich builds its Style from them too.
+ANSI_FG = 16
+ANSI_BG = 231
+ANSI_PREFIX = f"\x1b[38;5;{ANSI_FG};48;5;{ANSI_BG}m"
 ANSI_RESET = "\x1b[0m"
 
 

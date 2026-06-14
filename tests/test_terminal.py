@@ -2,7 +2,7 @@
 
 import io
 from collections.abc import Callable
-from typing import IO, cast, override
+from typing import override
 
 import pytest
 
@@ -210,8 +210,10 @@ def test_ansi_force_overrides_guards() -> None:
 
 @pytest.mark.usefixtures("color_ok")
 def test_ansi_downgrades_on_stream_without_isatty() -> None:
+    # _WriteOnly has no isatty and is not an IO[str]; it satisfies the narrow
+    # SupportsWrite protocol structurally, so no cast is needed here.
     out = _WriteOnly()
-    show("HELLO", mode="ansi", out=cast(IO[str], cast(object, out)), width=100)
+    show("HELLO", mode="ansi", out=out, width=100)
     assert "\x1b[" not in out.text
 
 

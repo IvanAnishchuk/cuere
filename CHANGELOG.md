@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.well-known/security.txt` (RFC 9116) — machine-readable security contact.
 - Contributor governance: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue
   templates (bug / feature / question) and a pull-request template.
+- `SupportsWrite` — a narrow text-sink protocol (any object with `write(str)`),
+  exported from `cuere`. It is what `show(out=...)` now accepts.
 
 ### Changed
 
@@ -47,6 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   set and its defaults live once in `QRMatrix.encode`. Calls like
   `render(data, border=2, error="H")` are unchanged. Also centralized the ANSI
   color values shared by `render` and `rich`.
+- `show(out=...)` is typed as the narrow `SupportsWrite` protocol instead of
+  `typing.IO[str]`, matching what it actually needs (a single `write`; `isatty`
+  is probed defensively). Backward compatible — every `IO[str]` already
+  satisfies it — and it removes the double-`cast` workaround the tests needed to
+  pass a write-only stream.
+- mypy: made `strict_equality` and `warn_redundant_casts` explicit in the
+  config (both already implied by `strict = true`).
 
 ### Fixed
 

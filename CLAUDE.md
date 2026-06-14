@@ -4,6 +4,27 @@ Pure-Python library: QR codes rendered in the terminal (Unicode half-blocks,
 like Claude Code's remote-control screen). Encoder is segno; renderers are
 stdlib-only; CLI is typer; Rich integration in `cuere.rich`.
 
+## Layout
+
+**src-layout:** the importable package is `src/cuere/`, tests are in `tests/`
+(golden files in `tests/golden/`). The module install list lives in
+`src/cuere/meson.build` — there is no globbing, so every new module must be
+added there (see meson-python gotchas below). Modules and what they own:
+
+- `matrix.py` — the segno-wrapping encoder and the **only** module that imports
+  segno. `QRMatrix` (frozen), `ECLevel`, `coerce`, and the shared
+  `Encodable` / `EncodeOptions` encode-option types.
+- `render.py` — pure-stdlib glyph renderers. `RenderMode`, `render_matrix`,
+  `render_width` / `render_height`, `coerce_mode`, and the `ANSI_FG`/`ANSI_BG`
+  color constants. No terminal interaction.
+- `terminal.py` — the high-level API: `render`, `show`, `fits`, and the narrow
+  `SupportsWrite` sink protocol. Owns terminal-size and NO_COLOR/tty logic.
+- `wallet.py` — crypto-URI helpers: `optimize_uri`, `is_qr_alphanumeric`.
+- `rich.py` — the Rich renderable `QRCode` (imports `rich`; loads on demand).
+- `cli.py` + `__main__.py` — the typer CLI `app` (imports `typer`; on demand).
+- `errors.py` — exception hierarchy: `CuereError` and subclasses.
+- `__init__.py` — public surface (`__all__`) and `__version__`.
+
 ## Commands
 
 ```bash

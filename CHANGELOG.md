@@ -34,6 +34,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   templates (bug / feature / question) and a pull-request template.
 - `SupportsWrite` — a narrow text-sink protocol (any object with `write(str)`),
   exported from `cuere`. It is what `show(out=...)` now accepts.
+- Test-hardening pass: edge-case and property coverage for empty/whitespace
+  payloads, near-maximal payloads, all four EC levels (encoding + monotonic
+  version growth), the reachable Micro QR variants (M2–M4, plus the M1-skip and
+  the rejected `H`/oversized cases), extreme borders, that pure `render()`
+  keeps ANSI color regardless of `NO_COLOR`, and round-trip strategies that
+  exercise the renderers against real encoder output (not only synthetic bit
+  patterns).
 
 ### Changed
 

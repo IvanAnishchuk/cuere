@@ -26,6 +26,22 @@ def matrices(draw: st.DrawFn) -> QRMatrix:
     return QRMatrix(modules=tuple(tuple(row) for row in rows), version=1, border=0)
 
 
+@st.composite
+def encoded_matrices(draw: st.DrawFn) -> QRMatrix:
+    """Real encoder output spanning EC levels, borders, and v1-v4 payloads.
+
+    The synthetic ``matrices`` strategy exercises arbitrary bit grids; this one
+    feeds the renderers the *actual* segno output (always square, odd-height,
+    quiet-zone framed). It is an end-to-end guard — encode then render then
+    recover — that the synthetic round-trips cannot give, since they never run
+    the encoder and so cannot catch it emitting a shape the renderer mishandles.
+    """
+    text = draw(st.text(alphabet=QR_ALPHANUMERIC, min_size=0, max_size=40))
+    border = draw(st.integers(min_value=0, max_value=4))
+    error = draw(st.sampled_from("LMQH"))
+    return QRMatrix.encode(text, border=border, error=error)
+
+
 def _parse_half(text: str) -> tuple[tuple[bool, ...], ...]:
     rows: list[tuple[bool, ...]] = []
     for line in text.split("\n"):
@@ -53,6 +69,19 @@ def test_half_round_trip(matrix: QRMatrix) -> None:
 
 @given(matrices())
 def test_block_round_trip(matrix: QRMatrix) -> None:
+    assert _parse_block(render_matrix(matrix, mode=RenderMode.BLOCK)) == matrix.modules
+
+
+@given(encoded_matrices())
+def test_half_round_trip_on_real_matrices(matrix: QRMatrix) -> None:
+    recovered = _parse_half(render_matrix(matrix))
+    assert recovered[: matrix.height] == matrix.modules
+    if matrix.height % 2:  # real QR matrices are always odd-height -> one pad row
+        assert not any(recovered[matrix.height])
+
+
+@given(encoded_matrices())
+def test_block_round_trip_on_real_matrices(matrix: QRMatrix) -> None:
     assert _parse_block(render_matrix(matrix, mode=RenderMode.BLOCK)) == matrix.modules
 
 

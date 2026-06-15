@@ -66,7 +66,11 @@ install's import hook otherwise shadows the mutated tree. See
   code.** It is the real review gate here. The GitHub review bots are
   unreliable on this repo (CodeRabbit out of credits; Codex/Copilot at usage
   limits) — a green or empty bot check is **not** an approval, so don't rely on
-  it. `/code-review` is what actually gates a change.
+  it. `/code-review` is what actually gates a change. CodeRabbit's behavior is
+  pinned in `.coderabbit.yaml` (best-effort second opinion); when it stays
+  "Review in progress" and posts nothing, the org is out of usage credits or
+  rate-limited — the fix is the billing tab, not the config. Nudge an on-demand
+  review with a `@coderabbitai review` PR comment.
 - **Merge with a merge commit — never squash or rebase.** `main` is protected
   and squash/rebase are disabled; the only button is merge-commit. Keep PR
   commits as separate signed, DCO-signed (`git commit -s`) commits so they

@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=https://www.coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit review configuration for cuere.
+#
+# Policy: CodeRabbit is a BEST-EFFORT second opinion. The real review gate is
+# `/code-review` plus strict CI (100% branch coverage, ruff, three type
+# checkers, mutmut). A green, neutral, or empty CodeRabbit check is NOT an
+# approval. See CLAUDE.md / CONTRIBUTING.md.
+#
+# This file pins behavior so it is explicit and version-controlled instead of
+# relying on dashboard defaults. NOTE: when CodeRabbit stays "Review in
+# progress" and posts nothing, the org is out of usage credits or rate-limited
+# — it posts a blocked-review stub and no YAML setting can unblock it. The fix
+# is to replenish credits in the billing tab, not to change this config.
+
+language: en-US
+early_access: false
+
+reviews:
+  # assertive = more thorough, surfaces more (incl. nitpicks). Chosen because
+  # CodeRabbit only runs best-effort here, so maximize signal when it does run.
+  profile: assertive
+
+  # Best-effort reviewer: never let it block a merge via "request changes".
+  request_changes_workflow: false
+
+  high_level_summary: true
+  review_status: true
+  poem: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+    auto_incremental_review: true
+    base_branches:
+      - main
+
+  # Exclusions only — everything not listed is still reviewed. These are
+  # generated, vendored, or non-reviewable tracked files.
+  path_filters:
+    - "!uv.lock"
+    - "!dist/**"
+    - "!build/**"
+    - "!mutants/**"
+    - "!tests/golden/**" # exact render output; trailing whitespace is significant
+
+  path_instructions:
+    - path: "src/cuere/**/*.py"
+      instructions: >-
+        House style (deliberate — do NOT flag these as issues): no
+        `from __future__ import annotations`; reach for `if TYPE_CHECKING:` only
+        to break a real import cycle or defer a heavy/optional dependency (rich,
+        typer, Pillow), never for cheap stdlib/intra-package types — the
+        flake8-type-checking (TCH) ruff rules are intentionally OFF. Keep
+        exception message text OUT of raise sites (ruff TRY003): pass
+        module-level `_ERR_*` name constants, not string literals. `import cuere`
+        must not import rich, typer, or Pillow, and only `matrix.py` imports
+        segno. Error correction defaults to level L with `boost_error=False` —
+        both are intentional (smaller on-screen code), not bugs. Branch coverage
+        must stay at 100% by structuring code to be testable, not via pragmas.
+    - path: "**/meson.build"
+      instructions: >-
+        Meson does NOT glob: every new module under `src/cuere/` must be added to
+        `py.install_sources` in `src/cuere/meson.build`, or it silently won't
+        ship in wheels (tests/test_packaging.py guards this). The project version
+        lives ONLY in the root `meson.build`; never add a static version to
+        pyproject.toml.
+    - path: "CHANGELOG.md"
+      instructions: >-
+        Keep a Changelog format. New entries go under `## [Unreleased]` in the
+        matching category (Added / Changed / Fixed / Security). Do not insert a
+        category heading into the middle of an existing list — that silently
+        relabels the entries above it.
+
+  # ruff and gitleaks are already enforced strictly by CI and pre-commit (ruff
+  # to zero warnings; gitleaks honoring .gitleaks.toml). Disable CodeRabbit's
+  # duplicates so it focuses on the LLM review CI can't do, without doubling up
+  # inline lint comments.
+  tools:
+    ruff:
+      enabled: false
+    gitleaks:
+      enabled: false
+
+chat:
+  auto_reply: true

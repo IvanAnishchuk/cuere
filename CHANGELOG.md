@@ -77,6 +77,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   protection on `main`, and the PyPI/TestPyPI environments — as code.
 - `.github/CODEOWNERS`.
 - gitleaks now uploads its SARIF to code scanning.
+- `.coderabbit.yaml` — the CodeRabbit review configuration, pinned in-repo
+  rather than left to dashboard defaults: assertive profile, auto-review on pull
+  requests targeting `main`, path filters that skip generated files (`uv.lock`,
+  build output, golden fixtures), and house-style review instructions.
+  CodeRabbit's bundled `ruff` and `gitleaks` are disabled there since CI already
+  enforces both. CodeRabbit remains a best-effort second opinion; `/code-review`
+  and CI are the gate.
 - `.well-known/security.txt` (RFC 9116) — machine-readable security contact.
 - Contributor governance: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue
   templates (bug / feature / question) and a pull-request template.

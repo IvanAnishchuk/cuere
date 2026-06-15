@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Terminal color customization for `ansi` mode. `render` / `show` (and
+  `cuere.rich.QRCode`, plus the CLI `--dark` / `--light` flags) now take `dark`
+  and `light` colors for the dark modules and the light ground. A `Color` is a
+  name (one of the 16 standard ANSI colors), a 256-palette index (an `int` or its
+  string form), or a truecolor value (`#rrggbb` / `#rgb` hex, an `(r, g, b)`
+  tuple, or its `"r,g,b"` string); the defaults stay the theme-proof
+  black-on-white (palette `16` on `231`). Colors are `ansi`-only — passing one to
+  `half` / `block` raises the new `ColorError` (a `CuereError`) — and `show`
+  drops them along with its `NO_COLOR` / non-tty fallback. Adds the exported
+  `Color` type alias. Documented in a new `docs/colors.md`, including the
+  scanner-contrast caveats. Closes #26.
 - A pytest-benchmark performance suite (`benchmarks/`) and an informational
   `Benchmark` CI job that records encode and render timings as a JSON artifact.
   It covers `QRMatrix.encode` across payload sizes, each render mode

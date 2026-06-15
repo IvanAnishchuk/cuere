@@ -57,6 +57,30 @@ def test_ansi_force() -> None:
     assert result.stdout == render("HELLO", mode="ansi") + "\n"
 
 
+def test_dark_and_light_options() -> None:
+    result = runner.invoke(
+        app, ["HELLO", "--mode", "ansi", "--force", "--dark", "red", "--light", "white"]
+    )
+    assert result.exit_code == 0
+    assert result.stdout == render("HELLO", mode="ansi", dark="red", light="white") + "\n"
+
+
+def test_dark_requires_ansi_mode_is_a_clean_error() -> None:
+    # Colors are ANSI-only; on the default half mode this is a clean error, not a
+    # traceback, and not silently ignored.
+    result = runner.invoke(app, ["HELLO", "--dark", "red"])
+    assert result.exit_code == 1
+    assert "error:" in result.output
+
+
+def test_dark_with_output_is_a_clean_error() -> None:
+    # Colors apply to terminal output only; combining with --output is a clean
+    # error rather than a silently default-colored file.
+    result = runner.invoke(app, ["HELLO", "--mode", "ansi", "--dark", "red", "--output", "text"])
+    assert result.exit_code == 1
+    assert "error:" in result.output
+
+
 def test_bad_mode_is_a_usage_error() -> None:
     result = runner.invoke(app, ["HELLO", "--mode", "sixel"])
     assert result.exit_code == 2

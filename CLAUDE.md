@@ -20,8 +20,9 @@ and what they own:
   `Encodable` / `EncodeOptions` encode-option types.
 - `render.py` — pure-stdlib glyph and vector renderers. `RenderMode`,
   `render_matrix`, `render_svg`, `render_width` / `render_height`, `coerce_mode`,
-  and the `ANSI_FG`/`ANSI_BG` / `DEFAULT_SCALE` / `SVG_DARK`/`SVG_LIGHT`
-  constants. No terminal interaction.
+  the `Color` type with `resolve_color` / `check_color_mode` (ANSI mode's
+  `dark`/`light` colors), and the `ANSI_FG`/`ANSI_BG` / `DEFAULT_SCALE` /
+  `SVG_DARK`/`SVG_LIGHT` constants. No terminal interaction.
 - `terminal.py` — the high-level API: `render`, `show`, `fits`, and the narrow
   `SupportsWrite` sink protocol. Owns terminal-size and NO_COLOR/tty logic.
 - `output.py` — the output-format dispatcher: `OutputFormat`, `render_bytes` /

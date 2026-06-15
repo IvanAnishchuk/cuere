@@ -8,7 +8,14 @@ from typing import Literal, Protocol, Unpack
 
 from cuere.errors import WidthError
 from cuere.matrix import Encodable, EncodeOptions, coerce
-from cuere.render import RenderMode, coerce_mode, render_height, render_matrix, render_width
+from cuere.render import (
+    Color,
+    RenderMode,
+    coerce_mode,
+    render_height,
+    render_matrix,
+    render_width,
+)
 
 OnTooWide = Literal["error", "warn", "render"]
 
@@ -31,11 +38,17 @@ def render(
     *,
     mode: RenderMode | str = RenderMode.HALF,
     invert: bool = False,
+    dark: Color | None = None,
+    light: Color | None = None,
     **options: Unpack[EncodeOptions],
 ) -> str:
-    """Encode ``data`` (unless it is already a :class:`QRMatrix`) and render it."""
+    """Encode ``data`` (unless it is already a :class:`QRMatrix`) and render it.
+
+    ``dark`` / ``light`` customize ANSI mode's module colors (see
+    :func:`cuere.render.render_matrix`); they are only valid for ``mode="ansi"``.
+    """
     matrix = coerce(data, **options)
-    return render_matrix(matrix, mode=coerce_mode(mode), invert=invert)
+    return render_matrix(matrix, mode=coerce_mode(mode), invert=invert, dark=dark, light=light)
 
 
 def fits(
@@ -69,6 +82,8 @@ def show(
     width: int | None = None,
     on_too_wide: OnTooWide = "error",
     force: bool = False,
+    dark: Color | None = None,
+    light: Color | None = None,
     **options: Unpack[EncodeOptions],
 ) -> None:
     """Render ``data`` and write it to ``out`` (default ``sys.stdout``).
@@ -79,13 +94,16 @@ def show(
 
     ANSI mode silently falls back to HALF when ``NO_COLOR`` is set or the
     stream is not a tty, unless ``force=True``: raw SGR codes in logs or
-    pipelines are worse than a theme-dependent code.
+    pipelines are worse than a theme-dependent code. ``dark`` / ``light``
+    customize ANSI mode's colors (only valid for ``mode="ansi"``); when ANSI
+    falls back, they are dropped with it so a no-color terminal gets plain glyphs.
     """
     stream = out if out is not None else sys.stdout
     matrix = coerce(data, **options)
     render_mode = coerce_mode(mode)
     if render_mode is RenderMode.ANSI and not force and not _ansi_ok(stream):
         render_mode = RenderMode.HALF
+        dark = light = None
     required = render_width(matrix, render_mode)
     available = width if width is not None else shutil.get_terminal_size().columns
     if required > available:
@@ -97,7 +115,9 @@ def show(
                 + " it will probably not scan",
                 stacklevel=2,
             )
-    _ = stream.write(render_matrix(matrix, mode=render_mode, invert=invert) + "\n")
+    _ = stream.write(
+        render_matrix(matrix, mode=render_mode, invert=invert, dark=dark, light=light) + "\n"
+    )
 
 
 def _ansi_ok(stream: SupportsWrite) -> bool:

@@ -24,6 +24,23 @@ class WalletURIError(CuereError):
         self.value = value
 
 
+class ColorError(CuereError):
+    """Raised when a color argument is malformed or used where no color applies.
+
+    Carries the offending ``value`` — the bad color, or the render mode that
+    cannot take one (only ANSI mode is colored). The message is composed here so
+    call sites pass only a reason constant plus the value, never a raise-site
+    string literal (keeping the public exception contract a pure
+    :class:`CuereError`, mirroring :class:`WalletURIError`).
+    """
+
+    value: object
+
+    def __init__(self, reason: str, value: object) -> None:
+        super().__init__(f"{reason}: {value!r}")
+        self.value = value
+
+
 class WidthError(CuereError):
     """Raised when a rendered QR code does not fit the available width."""
 

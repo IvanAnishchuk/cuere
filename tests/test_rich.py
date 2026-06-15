@@ -3,11 +3,13 @@
 import subprocess
 import sys
 
+import pytest
 from rich.console import Console
 from rich.panel import Panel
 from rich.segment import Segment
+from rich.style import Style
 
-from cuere import render
+from cuere import ColorError, render
 from cuere.rich import ANSI_STYLE, QRCode
 
 
@@ -95,6 +97,34 @@ def test_half_mode_segments_have_no_style() -> None:
     console = _console()
     segments = list(QRCode("HELLO").__rich_console__(console, console.options))
     assert all(s.style is None for s in segments if isinstance(s, Segment))
+
+
+def test_ansi_custom_colors_build_a_matching_style() -> None:
+    # A named dark + a truecolor light map to the same Rich color strings the SGR
+    # text path resolves to (color(N) for palette, rgb(r,g,b) for truecolor).
+    console = _console()
+    qr = QRCode("HELLO", mode="ansi", dark="red", light=(0, 17, 34))
+    content = [
+        s
+        for s in qr.__rich_console__(console, console.options)
+        if isinstance(s, Segment) and s.text.strip("\n")
+    ]
+    assert content
+    expected = Style(color="color(1)", bgcolor="rgb(0,17,34)")
+    assert all(s.style == expected for s in content)
+    assert all(s.style is not ANSI_STYLE for s in content)
+
+
+def test_rich_colors_require_ansi_mode() -> None:
+    with pytest.raises(ColorError):
+        _ = QRCode("HELLO", dark="red")
+
+
+def test_rich_validates_colors_eagerly() -> None:
+    # A malformed color fails at construction (like render/show), not deep inside
+    # a later Console.print.
+    with pytest.raises(ColorError):
+        _ = QRCode("HELLO", mode="ansi", dark="notacolor")
 
 
 def test_invert_matches_plain_render() -> None:

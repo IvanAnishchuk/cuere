@@ -16,6 +16,11 @@ from cuere.wallet import optimize_uri
 
 app = typer.Typer(add_completion=False, context_settings={"help_option_names": ["-h", "--help"]})
 
+# --dark/--light color the terminal ANSI rendering only; the file/bytes export
+# path (save()) has no color knob, so reject the combination rather than silently
+# writing a default-colored file.
+_COLOR_OUTPUT_ONLY = "--dark / --light apply to terminal output only, not --output"
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -65,6 +70,20 @@ def main(
     force: Annotated[
         bool, typer.Option("--force", help="Emit ANSI colors even when NO_COLOR/not a tty.")
     ] = False,
+    dark: Annotated[
+        str | None,
+        typer.Option(
+            "--dark",
+            help="ANSI dark-module color: a name, 0-255 index, #hex, or r,g,b. Needs --mode ansi.",
+        ),
+    ] = None,
+    light: Annotated[
+        str | None,
+        typer.Option(
+            "--light",
+            help="ANSI light-ground color: a name, 0-255 index, #hex, or r,g,b. Needs --mode ansi.",
+        ),
+    ] = None,
     output: Annotated[
         str | None,
         typer.Option(
@@ -86,6 +105,11 @@ def main(
     ] = False,
 ) -> None:
     """Render DATA as a QR code in the terminal."""
+    if output is not None and (dark is not None or light is not None):
+        # Colors apply to terminal output only; fail fast (before reading input)
+        # with the same clean error/exit code as a color used on a non-ANSI mode.
+        typer.echo(f"error: {_COLOR_OUTPUT_ONLY}", err=True)
+        raise typer.Exit(code=1)
     try:
         if input_file is not None:
             payload = input_file.read_text(encoding="utf-8").rstrip("\r\n")
@@ -106,6 +130,8 @@ def main(
                 boost_error=boost_error,
                 on_too_wide="error" if check_width else "render",
                 force=force,
+                dark=dark,
+                light=light,
             )
         else:
             # FORMAT[:PATH]; a missing path or '-' means stdout. save() owns the

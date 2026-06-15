@@ -6,6 +6,8 @@ from pathlib import Path
 import pytest
 
 from cuere import (
+    Color,
+    ColorError,
     CuereError,
     QRMatrix,
     RenderMode,
@@ -14,7 +16,17 @@ from cuere import (
     render_matrix,
     render_width,
 )
-from cuere.render import ANSI_PREFIX, ANSI_RESET, DEFAULT_SCALE, render_svg
+from cuere.render import (
+    ANSI_BG,
+    ANSI_FG,
+    ANSI_PREFIX,
+    ANSI_RESET,
+    DEFAULT_SCALE,
+    _resolve_rgb,  # pyright: ignore[reportPrivateUsage]
+    check_color_mode,
+    render_svg,
+    resolve_color,
+)
 
 GOLDEN = Path(__file__).parent / "golden"
 WC_URI = (
@@ -88,6 +100,129 @@ def test_extreme_border_renders_rectangular_with_blank_frame(mode: RenderMode) -
     assert len({len(line) for line in lines}) == 1
     top = lines[0].replace(ANSI_PREFIX, "").replace(ANSI_RESET, "")
     assert set(top) <= {" "}
+
+
+# ── colors ───────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    ("color", "expected"),
+    [
+        ("red", 1),
+        ("WHITE", 7),
+        ("Bright Red", 9),
+        ("bright-blue", 12),
+        (16, 16),
+        ("231", 231),
+        ("#ff8800", (255, 136, 0)),
+        ("#f80", (255, 136, 0)),
+        ((1, 2, 3), (1, 2, 3)),
+        ("1,2,3", (1, 2, 3)),
+        (" 1 , 2 , 3 ", (1, 2, 3)),
+    ],
+)
+def test_resolve_color_accepts_every_form(
+    color: Color, expected: int | tuple[int, int, int]
+) -> None:
+    assert resolve_color(color) == expected
+
+
+@pytest.mark.parametrize(
+    "color",
+    # "²"/"٤" are unicode digits str.isdigit() accepts but int() can't (or
+    # silently would) treat as an ASCII palette index — both must be rejected.
+    ["bleu", "", "#", "#12", "#1234", "#gg0000", "1,2", "1,2,3,4", "a,b,c", 256, -1, 999, "²", "٤"],
+)
+def test_resolve_color_rejects_bad_values(color: Color) -> None:
+    # The "r,g,b" string cases ("1,2", "1,2,3,4") drive the same wrong-length
+    # guard in _resolve_rgb that a native wrong-length (r,g,b) tuple would hit,
+    # so a malformed tuple is a clean ColorError, not a later unpack ValueError.
+    with pytest.raises(ColorError):
+        _ = resolve_color(color)
+
+
+def test_resolve_color_rejects_bool() -> None:
+    # bool is an int subclass, so guard it: True/False are not palette indices.
+    for value in (True, False):
+        with pytest.raises(ColorError):
+            _ = resolve_color(value)
+    with pytest.raises(ColorError):
+        _ = resolve_color((True, 0, 0))
+
+
+def test_resolve_color_rejects_rgb_out_of_range() -> None:
+    with pytest.raises(ColorError):
+        _ = resolve_color((256, 0, 0))
+
+
+@pytest.mark.parametrize("bad", [(1.5, 0, 0), ("a", 0, 0), (1, 2), (1, 2, 3, 4)])
+def test_resolve_rgb_guards_untrusted_tuples(bad: tuple[object, ...]) -> None:
+    # _resolve_rgb defends against tuples the public Color type forbids but an
+    # untyped runtime caller could pass: non-int channels and wrong lengths are a
+    # clean ColorError, never malformed SGR or a downstream TypeError/ValueError.
+    with pytest.raises(ColorError):
+        _ = _resolve_rgb(bad)
+
+
+def test_color_error_carries_the_offending_value() -> None:
+    with pytest.raises(ColorError) as excinfo:
+        _ = resolve_color("bleu")
+    assert excinfo.value.value == "bleu"
+    assert "bleu" in str(excinfo.value)
+
+
+def test_ansi_default_colors_equal_the_shared_prefix() -> None:
+    # Passing the default palette indices reproduces ANSI_PREFIX byte-for-byte,
+    # so the no-argument default path is unchanged.
+    matrix = _matrix([[True, False], [False, True]])
+    explicit = render_matrix(matrix, mode=RenderMode.ANSI, dark=ANSI_FG, light=ANSI_BG)
+    assert explicit == render_matrix(matrix, mode=RenderMode.ANSI)
+    assert ANSI_PREFIX in explicit
+
+
+def test_ansi_named_colors_emit_palette_sgr() -> None:
+    matrix = _matrix([[True, False], [False, True]])
+    out = render_matrix(matrix, mode=RenderMode.ANSI, dark="red", light="white")
+    assert out == f"\x1b[38;5;1;48;5;7m▀▄{ANSI_RESET}"
+
+
+def test_ansi_truecolor_hex_and_tuple_emit_rgb_sgr() -> None:
+    matrix = _matrix([[True, False], [False, True]])
+    out = render_matrix(matrix, mode=RenderMode.ANSI, dark="#ff8800", light=(0, 17, 34))
+    assert out == f"\x1b[38;2;255;136;0;48;2;0;17;34m▀▄{ANSI_RESET}"
+
+
+def test_ansi_dark_only_keeps_default_light() -> None:
+    out = render_matrix(_matrix([[True]]), mode=RenderMode.ANSI, dark="red")
+    assert out == f"\x1b[38;5;1;48;5;{ANSI_BG}m▀{ANSI_RESET}"
+
+
+def test_ansi_light_only_keeps_default_dark() -> None:
+    out = render_matrix(_matrix([[True]]), mode=RenderMode.ANSI, light="black")
+    assert out == f"\x1b[38;5;{ANSI_FG};48;5;0m▀{ANSI_RESET}"
+
+
+@pytest.mark.parametrize("mode", [RenderMode.HALF, RenderMode.BLOCK])
+def test_colors_rejected_for_non_ansi_mode(mode: RenderMode) -> None:
+    matrix = _matrix([[True, False]])
+    with pytest.raises(ColorError):
+        _ = render_matrix(matrix, mode=mode, dark="red")
+    with pytest.raises(ColorError):
+        _ = render_matrix(matrix, mode=mode, light="red")
+
+
+def test_check_color_mode_allows_no_colors_for_any_mode() -> None:
+    for mode in RenderMode:
+        check_color_mode(mode, None, None)  # no raise
+
+
+def test_check_color_mode_allows_colors_for_ansi() -> None:
+    check_color_mode(RenderMode.ANSI, "red", "white")  # no raise
+
+
+def test_check_color_mode_rejects_light_only_for_non_ansi() -> None:
+    with pytest.raises(ColorError):
+        check_color_mode(RenderMode.HALF, None, "red")
 
 
 # ── svg ──────────────────────────────────────────────────────────

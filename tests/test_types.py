@@ -33,6 +33,7 @@ def test_public_api_return_types() -> None:
 
     _ = assert_type(render("HI"), str)
     _ = assert_type(render(matrix), str)
+    _ = assert_type(render("HI", mode="ansi", dark="red", light=(0, 0, 0)), str)
     _ = assert_type(render_matrix(matrix), str)
     _ = assert_type(render_width(matrix), int)
     _ = assert_type(render_height(matrix), int)

@@ -118,8 +118,9 @@ select = [
 
 [tool.ruff.lint.pylint]
 # show()/the CLI command expose many keyword-only rendering options by design
-# (the CLI grew --output and --scale for the format dispatcher).
-max-args = 14
+# (the CLI grew --output and --scale for the format dispatcher, then --dark and
+# --light for terminal color customization).
+max-args = 16
 max-returns = 8
 max-branches = 15
 max-statements = 60

@@ -126,6 +126,7 @@ echo "some payload" | cuere
 cuere --input payload.txt              # read the payload from a file
 cuere 12345 --micro                    # compact Micro QR for a tiny payload
 cuere HELLO --mode ansi --invert --border 2 --error M
+cuere HELLO --mode ansi --dark "#1a1a1a" --light "#fafafa"   # custom ANSI colors
 cuere HELLO --output svg:code.svg      # write SVG to a file (default stays terminal)
 cuere HELLO -o png:- --scale 8 > code.png   # PNG to stdout (needs cuere[image])
 ```
@@ -135,12 +136,19 @@ cuere HELLO -o png:- --scale 8 > code.png   # PNG to stdout (needs cuere[image])
 | mode | one module is | width of a v2 code | notes |
 |---|---|---|---|
 | `half` (default) | ½ character (`▀▄█`) | 33 cols | survives copy-paste; inherits terminal colors |
-| `ansi` | ½ character, forced black-on-white | 33 cols | theme-proof; falls back to `half` when piped or `NO_COLOR` is set |
+| `ansi` | ½ character, colored (black-on-white default) | 33 cols | theme-proof; customizable colors; `show()` downgrades it to `half` when piped or `NO_COLOR` is set |
 | `block` | 2 characters (`██`) | 66 cols | most font-robust, twice as wide |
 
 The block-drawing glyphs (`█▀▄`) are East-Asian *Ambiguous* width: a terminal
 configured to render those double-width will widen the output, so the column
 counts above assume standard single-width rendering.
+
+`ansi` mode's colors are customizable: pass `dark` / `light` to `render` / `show`
+(and `cuere.rich.QRCode`, and the CLI `--dark` / `--light` flags) to set the
+dark-module and light-ground colors — a name, a 256-palette index, or a truecolor
+hex / `(r, g, b)` value. They default to spec-correct black-on-white. Colors are
+`ansi`-only (passing them to `half` / `block` raises `ColorError`). See
+[terminal colors](docs/colors.md) for the forms and the scanner-contrast caveats.
 
 ### Scanning notes
 

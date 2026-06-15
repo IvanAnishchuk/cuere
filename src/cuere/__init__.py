@@ -8,6 +8,7 @@ URIs.
 import importlib.metadata
 
 from cuere.errors import (
+    ColorError,
     CuereError,
     EncodingError,
     MissingDependencyError,
@@ -17,7 +18,14 @@ from cuere.errors import (
 )
 from cuere.matrix import ECLevel, QRMatrix
 from cuere.output import OutputFormat, SupportsWriteBytes, render_bytes, save
-from cuere.render import RenderMode, render_height, render_matrix, render_svg, render_width
+from cuere.render import (
+    Color,
+    RenderMode,
+    render_height,
+    render_matrix,
+    render_svg,
+    render_width,
+)
 from cuere.terminal import SupportsWrite, fits, render, show
 from cuere.wallet import (
     SchemeCase,
@@ -31,6 +39,8 @@ from cuere.wallet import (
 )
 
 __all__ = [
+    "Color",
+    "ColorError",
     "CuereError",
     "ECLevel",
     "EncodingError",

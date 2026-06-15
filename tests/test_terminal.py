@@ -6,7 +6,7 @@ from typing import override
 
 import pytest
 
-from cuere import CuereError, QRMatrix, RenderMode, WidthError, fits, render, show
+from cuere import ColorError, CuereError, QRMatrix, RenderMode, WidthError, fits, render, show
 
 HELLO_COLS = 29  # version 1 + 4-module border
 HELLO_ROWS = 15  # ceil(29 / 2) half-block rows
@@ -228,3 +228,31 @@ def test_invert_passthrough() -> None:
     out = io.StringIO()
     show("HELLO", out=out, width=100, invert=True)
     assert out.getvalue() == render("HELLO", invert=True) + "\n"
+
+
+# ── colors ───────────────────────────────────────────────────────
+
+
+@pytest.mark.usefixtures("color_ok")
+def test_show_custom_colors_on_tty() -> None:
+    out = _FakeTty()
+    show("HELLO", mode="ansi", out=out, width=100, dark="red", light="white")
+    assert out.getvalue() == render("HELLO", mode="ansi", dark="red", light="white") + "\n"
+    assert "\x1b[38;5;1;48;5;7m" in out.getvalue()
+
+
+@pytest.mark.usefixtures("color_ok")
+def test_show_custom_colors_dropped_on_downgrade() -> None:
+    # A non-tty stream downgrades ANSI to plain HALF; the custom colors go with
+    # it, so the output is the colorless default render — never raw SGR.
+    out = io.StringIO()
+    show("HELLO", mode="ansi", out=out, width=100, dark="red", light="white")
+    assert "\x1b[" not in out.getvalue()
+    assert out.getvalue() == render("HELLO") + "\n"
+
+
+def test_show_colors_require_ansi_mode() -> None:
+    out = io.StringIO()
+    with pytest.raises(ColorError):
+        show("HELLO", out=out, width=100, dark="red")
+    assert out.getvalue() == ""

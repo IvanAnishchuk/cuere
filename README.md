@@ -86,7 +86,8 @@ ethereum_uri("0xfb69...d359", value=10**16, chain_id=1)         # -> "ethereum:0
 erc20_transfer_uri("0xA0b8...eB48", to="0x8e23...d052", amount=1_000_000)  # -> "ethereum:0xA0b8...eB48/transfer?address=0x8e23...d052&uint256=1000000"
 ```
 
-See the [cookbook](docs/cookbook.md) for the full payment-request recipes, and
+See the [wallet cookbook](docs/cookbook/wallet-uris.md) for the full
+payment-request recipes, and
 the [BIP-21](docs/bip-21.md) / [Lightning](docs/lightning-uri.md) /
 [EIP-681](docs/eip-681.md) summaries for the formats and the `optimize_uri`
 scheme model.
@@ -114,8 +115,8 @@ png_bytes = render_bytes("HELLO", format="png") # -> bytes, no file
 ```
 
 The formats are `text` (the terminal rendering), `svg`, and `png` (needs the
-`cuere[image]` extra). See [output formats](docs/output-formats.md) for the full
-model.
+`cuere[image]` extra). See the [exporting recipe](docs/cookbook/exporting.md) and
+[output formats](docs/output-formats.md) for the full model.
 
 CLI:
 

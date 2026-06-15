@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A pytest-benchmark performance suite (`benchmarks/`) and an informational
+  `Benchmark` CI job that records encode and render timings as a JSON artifact.
+  It covers `QRMatrix.encode` across payload sizes, each render mode
+  (`half` / `block` / `ansi`), `render_svg`, `render_bytes` (PNG), and the
+  high-level `render()` / `render_bytes()` paths. The suite is kept out of the
+  test run (not in `testpaths`, so coverage is unaffected) and runs only via the
+  benchmark job or `uv run pytest benchmarks/ --benchmark-only`. There is no
+  regression threshold yet — it is the foundation for one later. Closes #22.
 - File and bytes export beyond the terminal. `render_bytes()` returns the
   encoded `bytes` for a named `OutputFormat`, and `save()` writes them to a path
   or binary stream — inferring the format from a `.txt` / `.svg` / `.png` suffix

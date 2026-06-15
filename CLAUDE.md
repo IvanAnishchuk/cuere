@@ -9,7 +9,11 @@ stdlib-only; CLI is typer; Rich integration in `cuere.rich`.
 **src-layout:** the importable package is `src/cuere/`, tests are in `tests/`
 (golden files in `tests/golden/`). The module install list lives in
 `src/cuere/meson.build` — there is no globbing, so every new module must be
-added there (see meson-python gotchas below). Modules and what they own:
+added there (see meson-python gotchas below). Performance benchmarks live in
+`benchmarks/` (pytest-benchmark); like `scripts/`, that dir is **ruff + `ty`
+scope only** — `mypy` (`src/ tests/`) and basedpyright (`include`) don't cover
+it, it's outside `testpaths`/coverage, and it never ships in the wheel. Modules
+and what they own:
 
 - `matrix.py` — the segno-wrapping encoder and the **only** module that imports
   segno. `QRMatrix` (frozen), `ECLevel`, `coerce`, and the shared
@@ -39,6 +43,7 @@ added there (see meson-python gotchas below). Modules and what they own:
 ```bash
 uv sync                          # editable install (meson-python PEP 660)
 uv run pytest                    # fail_under = 100, branch coverage
+uv run pytest benchmarks/ --benchmark-only --no-cov  # perf benchmarks (not the test suite)
 uv run ruff check src/ tests/
 uv run mypy src/ tests/          # strict
 uv run ty check

@@ -1,0 +1,56 @@
+name: Benchmark
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: benchmark-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: Benchmark (Python 3.13)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - run: uv sync --frozen --dev
+
+      # Informational only: records encode/render timings as a JSON artifact.
+      # There is no regression threshold yet (the suite is the foundation for
+      # one later, via pytest-benchmark's --benchmark-compare-fail). pytest-
+      # benchmark does not create the --benchmark-json parent dir, so make it.
+      - name: Run benchmarks
+        run: |
+          mkdir -p .reports/benchmark
+          uv run pytest benchmarks/ --benchmark-only \
+            --benchmark-json=.reports/benchmark/benchmark.json --no-cov
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: benchmark-results
+          path: .reports/benchmark/
+          include-hidden-files: true
+          retention-days: 14

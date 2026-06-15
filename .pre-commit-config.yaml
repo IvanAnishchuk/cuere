@@ -28,8 +28,10 @@ repos:
     hooks:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-        # Golden QR outputs: quiet-zone trailing spaces are significant.
-        exclude: ^tests/golden/
+        # Significant trailing whitespace: golden QR outputs and the rendered
+        # QR art embedded in the cookbook pages (quiet-zone spaces matter). The
+        # cookbook dir is excluded as a unit, matching scripts/render_cookbook_qr.py.
+        exclude: ^(tests/golden/|docs/cookbook/.*\.md$)
       - id: end-of-file-fixer
       - id: mixed-line-ending
         args: [--fix=lf]

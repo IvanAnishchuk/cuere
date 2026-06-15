@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   alphanumerics beginning `ln`) without a checksum verify, mirroring
   `bitcoin_uri`; invalid input raises `WalletURIError`. A lowercase result
   composes with `optimize_uri` for a smaller QR. Documented in
-  `docs/cookbook.md` and a new `docs/lightning-uri.md`.
+  `docs/cookbook/wallet-uris.md` and a new `docs/lightning-uri.md`.
 - `SchemeCase` and `scheme_case()` — a public, typed classifier for how
   `optimize_uri` treats a URI's scheme: `INSENSITIVE` (bech32 — `bitcoin:` /
   `lightning:` — may be uppercased), `SIGNIFICANT` (case carries meaning —
@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Addresses are validated structurally as `0x` + 40 hex digits with their
   EIP-55 checksum case preserved (so these URIs must never go through
   `optimize_uri`); numeric arguments are positive `uint256` integers. Invalid
-  input raises `WalletURIError`. Documented in `docs/cookbook.md`.
+  input raises `WalletURIError`. Documented in `docs/cookbook/wallet-uris.md`.
 - `docs/bip-21.md` and `docs/eip-681.md` — condensed summaries of the wallet-URI
   standards cuere implements (BIP-21/BIP-173 for `bitcoin_uri`; EIP-681/EIP-55/
   EIP-155 and ERC-20 `transfer` for the ethereum builders).
@@ -56,7 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`Decimal`/`int`/`str`; positive, finite, satoshi precision — never `float`),
   and percent-encodes `label`/`message`. Returns a plain `str` that composes
   with `optimize_uri` and `render`/`show`. Invalid input raises the new
-  `WalletURIError` (a `CuereError`). Documented in a new `docs/cookbook.md`.
+  `WalletURIError` (a `CuereError`). Documented in a new `docs/cookbook/wallet-uris.md`.
 - Mutation testing with `mutmut` (dev dependency, run locally — not in CI),
   configured in `pyproject.toml` and documented in `docs/mutation-testing.md`,
   with the set of accepted equivalent mutants recorded there. Includes a mypy
@@ -99,6 +99,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The cookbook moved into a `docs/cookbook/` directory: the payment-request
+  recipes now live in `docs/cookbook/wallet-uris.md` and the file/bytes export
+  recipes in `docs/cookbook/exporting.md` (the flat `docs/cookbook.md` is gone).
+  The wallet page now embeds the rendered terminal QR for every recipe, adds a
+  standalone WalletConnect (`wc:`) rendering recipe, and explains why cuere
+  encodes at error-correction level L. A new `scripts/render_cookbook_qr.py`
+  regenerates that embedded art (run with `--check` in CI to catch drift).
 - `optimize_uri()` is refactored onto the new `scheme_case()`; its behavior is
   unchanged (case-insensitive, lowercase, no-query URIs are uppercased;
   everything else is returned verbatim), but `ethereum:` and `wc:` are now

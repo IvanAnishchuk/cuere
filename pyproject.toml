@@ -46,8 +46,11 @@ cuere = "cuere.cli:app"
 dev = [
     "ruff>=0.15.16",
     "ty",
-    "pytest>=8.0",
+    "pytest>=8.1",  # floor raised from 8.0: pytest-benchmark 5.x requires >=8.1
     "pytest-cov>=6.0",
+    # Performance benchmarks (dev-only, run from benchmarks/ — not the test
+    # suite). See benchmarks/README.md and .github/workflows/benchmark.yml.
+    "pytest-benchmark>=5.0",
     "pip-audit>=2.7",
     "pre-commit>=4.0",
     "meson-python>=0.19.0",
@@ -107,6 +110,10 @@ select = [
 "scripts/*" = [
     "S603",    # subprocess args are list literals, not user input
     "S607",    # partial paths are fine for well-known tools (uv, python)
+]
+"benchmarks/*" = [
+    "S101",    # assert is fine in benchmark sanity checks
+    "PLR2004", # payload sizes / scales are expected literals
 ]
 
 [tool.ruff.lint.pylint]

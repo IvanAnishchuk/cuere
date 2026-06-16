@@ -9,9 +9,11 @@
 #
 # This file pins behavior so it is explicit and version-controlled instead of
 # relying on dashboard defaults. NOTE: when CodeRabbit stays "Review in
-# progress" and posts nothing, the org is out of usage credits or rate-limited
-# — it posts a blocked-review stub and no YAML setting can unblock it. The fix
-# is to replenish credits in the billing tab, not to change this config.
+# progress" / posts a blocked-review stub, it is the free-for-OSS hourly
+# per-developer RATE LIMIT on this public repo — NOT out of credits, and no
+# YAML setting can unblock it. The "replenish credits in the billing tab" line
+# in that stub is boilerplate that does not apply here; wait out the window, or
+# force a fresh pass with `@coderabbitai full review`. See CLAUDE.md.
 
 language: en-US
 early_access: false

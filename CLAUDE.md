@@ -74,13 +74,17 @@ install's import hook otherwise shadows the mutated tree. See
   trivial one-line status mention inside other work.
 - **Run `/code-review` before every push / PR, and to audit already-merged
   code.** It is the real review gate here. The GitHub review bots are
-  unreliable on this repo (CodeRabbit out of credits; Codex/Copilot at usage
-  limits) — a green or empty bot check is **not** an approval, so don't rely on
-  it. `/code-review` is what actually gates a change. CodeRabbit's behavior is
-  pinned in `.coderabbit.yaml` (best-effort second opinion); when it stays
-  "Review in progress" and posts nothing, the org is out of usage credits or
-  rate-limited — the fix is the billing tab, not the config. Nudge an on-demand
-  review with a `@coderabbitai review` PR comment.
+  unreliable on this repo (Codex/Copilot at usage limits; Gemini being sunset),
+  so a green or empty bot check is **not** an approval — don't rely on it.
+  `/code-review` is what actually gates a change. CodeRabbit is the live second
+  opinion (behavior pinned in `.coderabbit.yaml`). On this **public** repo it
+  runs free-for-OSS with an **hourly per-developer rate limit** — **not** out of
+  credits, so the "billing tab" line in its rate-limit warning is boilerplate
+  that does not apply. When a CodeRabbit check is pass/neutral with no
+  walkthrough, read the warning for when the window reopens and wait it out. A
+  rate-limited auto-review still marks the commit "seen", so a plain
+  `@coderabbitai review` returns a hollow result — force a real pass with
+  `@coderabbitai full review`.
 - **Merge with a merge commit — never squash or rebase.** `main` is protected
   and squash/rebase are disabled; the only button is merge-commit. Keep PR
   commits as separate signed, DCO-signed (`git commit -s`) commits so they
@@ -130,6 +134,15 @@ install's import hook otherwise shadows the mutated tree. See
   foreground ink. Odd-height matrices pad a virtual light bottom row.
 - Quiet zone is rendered as real spaces (full-width lines, no rstrip) — a
   scanner needs it in the code's own background.
+- Docs pages embed live QR art via `scripts/render_docs_qr.py` (`<!-- qr: KEY
+  -->` markers). Its `ART_PAGES` list and the `trailing-whitespace` `exclude:`
+  regex in `.pre-commit-config.yaml` must be kept in sync **by hand**: every art
+  page needs that exclusion or its significant quiet-zone trailing spaces get
+  stripped on commit, silently corrupting the QR art. Today the cookbook is
+  excluded as a whole directory (so new recipes are covered automatically) and
+  `docs/index.md` by name. `--check` (run in CI via `tests/test_docs_qr.py`)
+  catches art *drift*, not a *missing* exclusion — so when adding an art page
+  outside the cookbook, update both places.
 - `invert` is implemented as `matrix.inverted()` before glyph mapping —
   keep that single code path.
 - Error correction defaults to `L` with `boost_error=False`; both are

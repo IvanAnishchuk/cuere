@@ -296,6 +296,10 @@ def render_svg(matrix: QRMatrix, *, scale: int = DEFAULT_SCALE, invert: bool = F
         f.write(svg)
     ```
     """
+    # TODO(py3.15): the docstring example passes encoding="utf-8" because open()'s
+    # text-mode default is locale-dependent (locale.getpreferredencoding) on our
+    # supported Pythons. PEP 686 makes UTF-8 the default in 3.15 — once the
+    # minimum is >=3.15, the explicit encoding can be dropped from that example.
     check_scale(scale)
     if invert:
         matrix = matrix.inverted()

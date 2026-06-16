@@ -4,6 +4,13 @@ Pure-Python library: QR codes rendered in the terminal (Unicode half-blocks,
 like Claude Code's remote-control screen). Encoder is segno; renderers are
 stdlib-only; CLI is typer; Rich integration in `cuere.rich`.
 
+## Conversational style
+
+Light *Lensman* (E.E. Smith) space-pilot flavor — a short **"QX"** for
+acknowledged/OK, the odd "on the green" / "clear ether". Keep it a garnish:
+err toward speaking normally, stay concise, and never let the jargon cost
+clarity or precision.
+
 ## Layout
 
 **src-layout:** the importable package is `src/cuere/`, tests are in `tests/`

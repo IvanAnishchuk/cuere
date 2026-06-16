@@ -51,3 +51,20 @@
   padding-top: 2em;
   padding-bottom: 2em;
 }
+
+/* Square modules. A half-block cell is 1 module wide × 2 modules tall, so it is
+ * square only when the character cell is 1:2 (w:h) — true in a terminal, but a
+ * web monospace advance is ~0.6em while line-height:1 makes each module 0.5em
+ * tall, so modules render ~20% too wide (0.6 / 0.5 = 1.2). line-height can't fix
+ * it (>1 reintroduces uneven inter-row gaps). Compress the horizontal axis by
+ * 0.5/0.6 so a module is 0.5em × 0.5em — square. Tuned to the 0.6em advance of
+ * the theme's code font (JetBrains Mono; the standard monospace ratio, so the
+ * fallbacks match too). Measured square (aspect 1.000) in-browser; see #68.
+ * `display: block` is what the theme already sets on `pre > code`; pinning it
+ * here keeps this rule self-contained, since transforms don't apply to inline
+ * boxes (block, not inline-block, preserves the theme's full-width box model). */
+.md-typeset .qr pre > code {
+  display: block;
+  transform: scaleX(0.8333);
+  transform-origin: left;
+}

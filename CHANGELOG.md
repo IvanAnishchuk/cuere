@@ -184,7 +184,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with a full quiet zone and excluded from that hook. The QR-art generator is
   generalized from the cookbook to all docs pages and renamed
   `scripts/render_docs_qr.py`, so its `--check` drift guard now also covers the
-  homepage. Closes #68.
+  homepage. The CSS also squares the module aspect ratio (`scaleX`), which HTML's
+  monospace metrics otherwise stretch ~20% wider than tall. Closes #68.
 - The CLI now reports a clean `error: …` (exit 1) instead of an uncaught
   traceback when `--input` or stdin holds non-UTF-8 bytes (`UnicodeDecodeError`
   is a `ValueError`, so it previously slipped past the `(CuereError, OSError)`

@@ -9,6 +9,9 @@ build/
 builddir/
 dist/
 
+# Docs site build output (zensical)
+/site/
+
 # Tooling caches and reports
 .reports/
 .pytest_cache/

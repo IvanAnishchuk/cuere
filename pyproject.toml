@@ -31,9 +31,27 @@ dependencies = [
 # PNG export (cuere.output png format). Pillow is heavy and only needed for
 # raster output, so it is an opt-in extra, imported lazily in cuere.output.
 image = ["pillow>=11.0"]
+# Documentation site (zensical.toml, new format — not legacy mkdocs.yml). Built
+# with `uv run zensical build --clean --strict`; the CLI reference (issue #11)
+# uses mkdocs-typer2's zensical-native markdown extension.
+docs = [
+    # Pre-1.0 / ZeroVer doc tooling is upper-bounded (runtime deps stay
+    # floor-only): 0.0.x carries no compat guarantee and zensical's config
+    # surface — markdown-extension hoisting, the mkdocstrings shim — churns
+    # between releases, so cap to the tested minor.
+    "zensical>=0.0.45,<0.1",
+    # CLI reference: mkdocs-typer2's zensical-native markdown extension.
+    "mkdocs-typer2[zensical]>=0.3,<0.4",
+    # API reference: mkdocstrings python handler, configured in zensical.toml
+    # under [project.plugins.mkdocstrings] (zensical has built-in support). The
+    # floor tracks the 1.x line the config is validated against (the old 0.27
+    # floor admitted untested majors).
+    "mkdocstrings[python]>=1,<2",
+]
 
 [project.urls]
 Homepage = "https://github.com/IvanAnishchuk/cuere"
+Documentation = "https://ivananishchuk.github.io/cuere/"
 Repository = "https://github.com/IvanAnishchuk/cuere"
 Issues = "https://github.com/IvanAnishchuk/cuere/issues"
 Changelog = "https://github.com/IvanAnishchuk/cuere/blob/main/CHANGELOG.md"
@@ -62,7 +80,7 @@ dev = [
     "zizmor>=1.25",
     "mutmut>=3.5",
     # The image extra, pinned for the dev env so the type checkers resolve PIL
-    # and the PNG tests can run; end users opt in via `pip install cuere[image]`.
+    # and the PNG tests can run; end users opt in via the `cuere[image]` extra.
     "pillow>=11.0",
 ]
 

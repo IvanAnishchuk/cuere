@@ -2,11 +2,33 @@
 
 
 class CuereError(Exception):
-    """Base class for all cuere errors."""
+    """Base class for all cuere errors.
+
+    Catch this to handle any cuere-specific failure in one place.
+
+    ```python
+    from cuere import CuereError, render
+
+    try:
+        render("x" * 10_000)        # more data than any QR version holds
+    except CuereError as exc:
+        print(exc)
+    ```
+    """
 
 
 class EncodingError(CuereError):
-    """Raised when data cannot be encoded as a QR code."""
+    """Raised when data cannot be encoded as a QR code.
+
+    ```python
+    from cuere import EncodingError, render
+
+    try:
+        render("x" * 10_000)        # exceeds QR capacity
+    except EncodingError:
+        ...
+    ```
+    """
 
 
 class WalletURIError(CuereError):
@@ -14,7 +36,16 @@ class WalletURIError(CuereError):
 
     Carries the offending value; the human-readable reason is built here so
     call sites never pass a message string (keeping the public exception
-    contract a pure :class:`CuereError`, never a bare ``ValueError``).
+    contract a pure `CuereError`, never a bare `ValueError`).
+
+    ```python
+    from cuere import WalletURIError, bitcoin_uri
+
+    try:
+        bitcoin_uri("not an address!")
+    except WalletURIError as exc:
+        print(exc.value)            # the offending input
+    ```
     """
 
     value: object
@@ -27,11 +58,20 @@ class WalletURIError(CuereError):
 class ColorError(CuereError):
     """Raised when a color argument is malformed or used where no color applies.
 
-    Carries the offending ``value`` — the bad color, or the render mode that
+    Carries the offending `value` — the bad color, or the render mode that
     cannot take one (only ANSI mode is colored). The message is composed here so
     call sites pass only a reason constant plus the value, never a raise-site
     string literal (keeping the public exception contract a pure
-    :class:`CuereError`, mirroring :class:`WalletURIError`).
+    `CuereError`, mirroring `WalletURIError`).
+
+    ```python
+    from cuere import ColorError, render
+
+    try:
+        render("HI", mode="ansi", dark="not-a-color")
+    except ColorError:
+        ...
+    ```
     """
 
     value: object
@@ -42,7 +82,17 @@ class ColorError(CuereError):
 
 
 class WidthError(CuereError):
-    """Raised when a rendered QR code does not fit the available width."""
+    """Raised when a rendered QR code does not fit the available width.
+
+    ```python
+    from cuere import WidthError, show
+
+    try:
+        show("a long payload", width=10)   # narrower than the code
+    except WidthError as exc:
+        print(exc.required, exc.available)
+    ```
+    """
 
     required: int
     available: int
@@ -57,9 +107,18 @@ class UnknownFormatError(CuereError):
     """Raised when an output format is unrecognized or cannot be inferred.
 
     Like the other cuere errors, the human-readable message is composed here
-    so call sites pass only structured data (``hint`` is a module constant, not
-    a raise-site literal): the offending ``value`` plus a ``hint`` that explains
+    so call sites pass only structured data (`hint` is a module constant, not
+    a raise-site literal): the offending `value` plus a `hint` that explains
     what was expected.
+
+    ```python
+    from cuere import UnknownFormatError, save
+
+    try:
+        save("HI", "out.bmp")       # unrecognized suffix
+    except UnknownFormatError:
+        ...
+    ```
     """
 
     value: object
@@ -72,8 +131,17 @@ class UnknownFormatError(CuereError):
 class MissingDependencyError(CuereError):
     """Raised when an output format needs an optional dependency that is absent.
 
-    Carries the ``format`` that was requested and the ``extra`` that provides
-    it, so the message always points at the right ``pip install`` incantation.
+    Carries the `format` that was requested and the `extra` that provides
+    it, so the message always names the right `cuere[<extra>]` to install.
+
+    ```python
+    from cuere import MissingDependencyError, render_bytes
+
+    try:
+        render_bytes("HI", format="png")   # without the cuere[image] extra
+    except MissingDependencyError as exc:
+        print(exc.extra)                   # "image"
+    ```
     """
 
     format: str

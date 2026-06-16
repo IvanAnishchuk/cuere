@@ -2,7 +2,7 @@
 
 The HALF mode reproduces the rendering Claude Code CLI uses for its
 remote-connection QR codes: two modules per character cell vertically using
-``' '``, ``'▀'``, ``'▄'``, ``'█'``, no colors, quiet zone as real spaces.
+`' '`, `'▀'`, `'▄'`, `'█'`, no colors, quiet zone as real spaces.
 """
 
 import enum
@@ -72,11 +72,11 @@ _COLOR_NEEDS_ANSI = "dark/light colors require mode 'ansi'"
 
 
 def resolve_color(color: Color) -> int | tuple[int, int, int]:
-    """Normalize a :data:`Color` to a palette index or an ``(r, g, b)`` triple.
+    """Normalize a `Color` to a palette index or an `(r, g, b)` triple.
 
     The single validation/normalization point, so the SGR text path
-    (:func:`render_matrix`) and the Rich path (:class:`cuere.rich.QRCode`) agree.
-    Raises :class:`~cuere.errors.ColorError` on anything malformed.
+    (`render_matrix`) and the Rich path (`cuere.rich.QRCode`) agree.
+    Raises `ColorError` on anything malformed.
     """
     if isinstance(color, bool):  # bool is an int subclass; True/False is not a color
         raise ColorError(_BAD_COLOR_BOOL, color)
@@ -145,7 +145,7 @@ def _resolve_csv(text: str, original: str) -> tuple[int, int, int]:
 
 
 def _sgr_color(resolved: int | tuple[int, int, int], *, background: bool) -> str:
-    """Build the SGR parameters selecting ``resolved`` as a foreground/background."""
+    """Build the SGR parameters selecting `resolved` as a foreground/background."""
     lead = 48 if background else 38
     if isinstance(resolved, int):
         return f"{lead};5;{resolved}"
@@ -156,11 +156,11 @@ def _sgr_color(resolved: int | tuple[int, int, int], *, background: bool) -> str
 def resolve_pair(
     dark: Color | None, light: Color | None
 ) -> tuple[int | tuple[int, int, int], int | tuple[int, int, int]]:
-    """Resolve ``(dark, light)``, filling each ``None`` with its theme-proof default.
+    """Resolve `(dark, light)`, filling each `None` with its theme-proof default.
 
-    The single place ANSI mode's default ink/ground (palette ``ANSI_FG`` /
-    ``ANSI_BG``) is applied, so the SGR text path (:func:`render_matrix`) and the
-    Rich path (:class:`cuere.rich.QRCode`) never disagree on either the colors or
+    The single place ANSI mode's default ink/ground (palette `ANSI_FG` /
+    `ANSI_BG`) is applied, so the SGR text path (`render_matrix`) and the
+    Rich path (`cuere.rich.QRCode`) never disagree on either the colors or
     the defaults.
     """
     return (
@@ -178,10 +178,10 @@ _INVALID_SCALE = "scale must be a positive integer (pixels per module)"
 
 
 def check_scale(scale: int) -> None:
-    """Reject a non-positive pixels-per-module ``scale``.
+    """Reject a non-positive pixels-per-module `scale`.
 
     A zero or negative scale would yield a blank or negatively-sized image, so
-    it raises a :class:`~cuere.errors.CuereError` (never a bare ``ValueError``),
+    it raises a `CuereError` (never a bare `ValueError`),
     keeping the contract the rest of the API holds.
     """
     if scale < 1:
@@ -189,7 +189,16 @@ def check_scale(scale: int) -> None:
 
 
 class RenderMode(enum.StrEnum):
-    """How a QR matrix is turned into text."""
+    """How a QR matrix is turned into text.
+
+    Example:
+
+    ```python
+    from cuere import RenderMode, render
+
+    render("HELLO", mode=RenderMode.BLOCK)   # or just mode="block"
+    ```
+    """
 
     HALF = "half"
     """Unicode half-blocks, 1 column x 1/2 row per module (default)."""
@@ -200,11 +209,11 @@ class RenderMode(enum.StrEnum):
 
 
 def coerce_mode(mode: RenderMode | str) -> RenderMode:
-    """Convert a mode name to :class:`RenderMode`, raising on an unknown value.
+    """Convert a mode name to `RenderMode`, raising on an unknown value.
 
-    Keeps the public API's error contract consistent: an invalid ``mode``
-    raises :class:`~cuere.errors.CuereError`, just like an invalid ``error``
-    level or ``border`` does, rather than a bare ``ValueError``.
+    Keeps the public API's error contract consistent: an invalid `mode`
+    raises `CuereError`, just like an invalid `error`
+    level or `border` does, rather than a bare `ValueError`.
     """
     try:
         return RenderMode(mode)
@@ -213,12 +222,12 @@ def coerce_mode(mode: RenderMode | str) -> RenderMode:
 
 
 def check_color_mode(mode: RenderMode, dark: Color | None, light: Color | None) -> None:
-    """Reject ``dark`` / ``light`` colors for a mode that emits none.
+    """Reject `dark` / `light` colors for a mode that emits none.
 
-    Only ANSI mode carries SGR colors; the plain glyph modes (``half`` / ``block``)
+    Only ANSI mode carries SGR colors; the plain glyph modes (`half` / `block`)
     inherit the terminal's own colors, so a color there would be silently dropped.
     Asking for one is an error, not a no-op — raising
-    :class:`~cuere.errors.ColorError` keeps the contract explicit.
+    `ColorError` keeps the contract explicit.
     """
     if (dark is not None or light is not None) and mode is not RenderMode.ANSI:
         raise ColorError(_COLOR_NEEDS_ANSI, mode)
@@ -232,16 +241,26 @@ def render_matrix(
     dark: Color | None = None,
     light: Color | None = None,
 ) -> str:
-    """Render ``matrix`` as text; lines are equal-width, no trailing newline.
+    """Render `matrix` as text; lines are equal-width, no trailing newline.
 
     The quiet zone is rendered as part of the output (spaces / light modules)
     because a scanner needs it in the code's own background, not whatever the
     surrounding terminal happens to show.
 
-    ``dark`` / ``light`` customize the SGR colors of ANSI mode (dark modules and
+    `dark` / `light` customize the SGR colors of ANSI mode (dark modules and
     the light ground respectively); they default to the theme-proof black-on-white
-    (palette ``16`` on ``231``). They are only valid for ``mode="ansi"`` — passing
-    a color for ``half`` / ``block`` raises :class:`~cuere.errors.ColorError`.
+    (palette `16` on `231`). They are only valid for `mode="ansi"` — passing
+    a color for `half` / `block` raises `ColorError`.
+
+    Example:
+
+    ```python
+    from cuere import QRMatrix, RenderMode, render_matrix
+
+    m = QRMatrix.encode("HELLO")
+    plain = render_matrix(m)  # default half-blocks
+    colored = render_matrix(m, mode=RenderMode.ANSI, dark="cyan")  # custom ANSI ink
+    ```
     """
     check_color_mode(mode, dark, light)
     if invert:
@@ -258,14 +277,23 @@ def render_matrix(
 
 
 def render_svg(matrix: QRMatrix, *, scale: int = DEFAULT_SCALE, invert: bool = False) -> str:
-    """Render ``matrix`` as a standalone SVG document, one module per unit.
+    """Render `matrix` as a standalone SVG document, one module per unit.
 
-    Dark modules become a single ``<path>`` over a light background ``<rect>``.
-    ``viewBox`` is the module grid, so the path coordinates stay small integers;
-    ``width``/``height`` scale it to ``scale`` pixels per module.
-    ``shape-rendering="crispEdges"`` keeps module borders sharp (anti-aliasing
-    blur hurts scanning). ``invert`` flips dark and light via
-    ``matrix.inverted()`` — the same single code path the glyph renderers use.
+    Dark modules become a single `<path>` over a light background `<rect>`.
+    `viewBox` is the module grid, so the path coordinates stay small integers;
+    `width`/`height` scale it to `scale` pixels per module.
+    `shape-rendering="crispEdges"` keeps module borders sharp (anti-aliasing
+    blur hurts scanning). `invert` flips dark and light via
+    `matrix.inverted()` — the same single code path the glyph renderers use.
+
+    Example:
+
+    ```python
+    from cuere import QRMatrix, render_svg
+
+    svg = render_svg(QRMatrix.encode("HELLO"), scale=8)
+    open("hello.svg", "w").write(svg)
+    ```
     """
     check_scale(scale)
     if invert:
@@ -288,12 +316,31 @@ def render_svg(matrix: QRMatrix, *, scale: int = DEFAULT_SCALE, invert: bool = F
 
 
 def render_width(matrix: QRMatrix, mode: RenderMode = RenderMode.HALF) -> int:
-    """Terminal columns the rendered matrix occupies (ignoring SGR codes)."""
+    """Terminal columns the rendered matrix occupies (ignoring SGR codes).
+
+    Example:
+
+    ```python
+    from cuere import QRMatrix, render_width, render_height
+
+    m = QRMatrix.encode("HELLO")
+    cols, rows = render_width(m), render_height(m)   # half-block footprint
+    ```
+    """
     return matrix.width * 2 if mode is RenderMode.BLOCK else matrix.width
 
 
 def render_height(matrix: QRMatrix, mode: RenderMode = RenderMode.HALF) -> int:
-    """Terminal rows the rendered matrix occupies."""
+    """Terminal rows the rendered matrix occupies.
+
+    Example:
+
+    ```python
+    from cuere import QRMatrix, RenderMode, render_height
+
+    rows = render_height(QRMatrix.encode("HELLO"), mode=RenderMode.BLOCK)
+    ```
+    """
     if mode is RenderMode.BLOCK:
         return matrix.height
     return (matrix.height + 1) // 2

@@ -1,11 +1,11 @@
 """Output-format dispatch: render a QR code to bytes or a file.
 
-:func:`render_bytes` is the primitive — it returns the encoded ``bytes`` for a
-named :class:`OutputFormat`; :func:`save` is the file-and-stream convenience
-that can also infer the format from a path suffix. ``text`` is the terminal
-glyph rendering (UTF-8, honoring ``mode``); ``svg`` is a vector document; and
-``png`` is a raster image that needs the optional ``cuere[image]`` extra
-(Pillow), imported lazily so ``import cuere`` never pulls it in.
+`render_bytes` is the primitive — it returns the encoded `bytes` for a
+named `OutputFormat`; `save` is the file-and-stream convenience
+that can also infer the format from a path suffix. `text` is the terminal
+glyph rendering (UTF-8, honoring `mode`); `svg` is a vector document; and
+`png` is a raster image that needs the optional `cuere[image]` extra
+(Pillow), imported lazily so `import cuere` never pulls it in.
 """
 
 import enum
@@ -27,28 +27,48 @@ from cuere.render import (
 
 
 class OutputFormat(enum.StrEnum):
-    """A target format for :func:`render_bytes` / :func:`save`."""
+    """A target format for `render_bytes` / `save`.
+
+    Example:
+
+    ```python
+    from cuere import save, OutputFormat
+
+    save("HELLO", "out.svg")                          # inferred from the suffix
+    save("HELLO", stream, format=OutputFormat.PNG)    # explicit for a stream
+    ```
+    """
 
     TEXT = "text"
-    """The terminal glyph rendering (honors ``mode``/``invert``), UTF-8 bytes."""
+    """The terminal glyph rendering (honors `mode`/`invert`), UTF-8 bytes."""
     SVG = "svg"
     """A standalone SVG vector document, UTF-8 bytes."""
     PNG = "png"
-    """A PNG raster image; requires the optional ``cuere[image]`` extra."""
+    """A PNG raster image; requires the optional `cuere[image]` extra."""
 
 
 @runtime_checkable
 class SupportsWriteBytes(Protocol):
-    """A binary sink: any object with a ``write(bytes)`` method.
+    """A binary sink: any object with a `write(bytes)` method.
 
-    The byte-oriented counterpart to :class:`cuere.terminal.SupportsWrite`;
-    ``sys.stdout.buffer``, ``io.BytesIO``, and an open binary file all qualify.
-    Runtime-checkable so :func:`save` can tell a stream from a path — neither
-    ``str`` nor ``os.PathLike`` carries a ``write`` method.
+    The byte-oriented counterpart to `cuere.terminal.SupportsWrite`;
+    `sys.stdout.buffer`, `io.BytesIO`, and an open binary file all qualify.
+    Runtime-checkable so `save` can tell a stream from a path — neither
+    `str` nor `os.PathLike` carries a `write` method.
+
+    Example:
+
+    ```python
+    import io
+    from cuere import save
+
+    buf = io.BytesIO()              # any object with .write(bytes) qualifies
+    save("HELLO", buf, format="svg")
+    ```
     """
 
     def write(self, b: bytes, /) -> object:
-        """Write ``b`` to the sink; the return value is ignored."""
+        """Write `b` to the sink; the return value is ignored."""
 
 
 # The optional-extra name and the suffix→format map, kept as module-level
@@ -66,11 +86,11 @@ _NO_FORMAT_HINT = "cannot infer output format; pass format= or use a known file 
 
 
 def coerce_format(fmt: OutputFormat | str) -> OutputFormat:
-    """Convert a format name to :class:`OutputFormat`, raising on an unknown one.
+    """Convert a format name to `OutputFormat`, raising on an unknown one.
 
-    Mirrors :func:`cuere.render.coerce_mode`: an invalid value raises
-    :class:`~cuere.errors.UnknownFormatError` (a :class:`CuereError`), never a
-    bare ``ValueError``.
+    Mirrors `cuere.render.coerce_mode`: an invalid value raises
+    `UnknownFormatError` (a `CuereError`), never a
+    bare `ValueError`.
     """
     try:
         return OutputFormat(fmt)
@@ -87,12 +107,21 @@ def render_bytes(
     scale: int = DEFAULT_SCALE,
     **options: Unpack[EncodeOptions],
 ) -> bytes:
-    """Encode ``data`` and render it to ``bytes`` in ``format``.
+    """Encode `data` and render it to `bytes` in `format`.
 
-    ``mode`` selects the glyphs for the ``text`` format and is ignored by the
-    image formats; ``scale`` is pixels-per-module for ``svg``/``png`` and is
-    ignored by ``text``. Encoding keywords (``error``/``border``/…) apply only
-    when ``data`` is not already a :class:`~cuere.matrix.QRMatrix`.
+    `mode` selects the glyphs for the `text` format and is ignored by the
+    image formats; `scale` is pixels-per-module for `svg`/`png` and is
+    ignored by `text`. Encoding keywords (`error`/`border`/…) apply only
+    when `data` is not already a `QRMatrix`.
+
+    Example:
+
+    ```python
+    from cuere import render_bytes
+
+    svg = render_bytes("HELLO", format="svg")   # UTF-8 bytes
+    png = render_bytes("HELLO", format="png")   # needs cuere[image]
+    ```
     """
     matrix = coerce(data, **options)
     fmt = coerce_format(format)
@@ -116,12 +145,22 @@ def save(
     scale: int = DEFAULT_SCALE,
     **options: Unpack[EncodeOptions],
 ) -> None:
-    """Render ``data`` and write the bytes to ``dest``.
+    """Render `data` and write the bytes to `dest`.
 
-    ``dest`` is a filesystem path or an open binary stream. When ``format`` is
-    omitted it is inferred from a path's suffix (``.txt``/``.svg``/``.png``); a
-    stream needs an explicit ``format``. Unknown formats and unguessable
-    destinations raise :class:`~cuere.errors.UnknownFormatError`.
+    `dest` is a filesystem path or an open binary stream. When `format` is
+    omitted it is inferred from a path's suffix (`.txt`/`.svg`/`.png`); a
+    stream needs an explicit `format`. Unknown formats and unguessable
+    destinations raise `UnknownFormatError`.
+
+    Example:
+
+    ```python
+    from cuere import save
+
+    save("HELLO", "qr.png")              # format from the .png suffix
+    with open("qr.svg", "wb") as fh:
+        save("HELLO", fh, format="svg")  # a stream needs an explicit format
+    ```
     """
     fmt = _resolve_format(format, dest)
     payload = render_bytes(data, format=fmt, mode=mode, invert=invert, scale=scale, **options)

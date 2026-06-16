@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A documentation site built with [zensical](https://zensical.org/) (the new
+  `zensical.toml` format) and Material for MkDocs: a landing page, a Quickstart,
+  a "Rendering & scanning" guide, an auto-generated **CLI reference**
+  (`mkdocs-typer2`) and **API reference** (`mkdocstrings`), and the existing
+  cookbook/standards pages, wired into a `docs` extra
+  (`uv sync --extra docs`). Every public symbol's docstring now carries a
+  usage example. Closes #10, #11, #12, #13.
+
 - Terminal color customization for `ansi` mode. `render` / `show` (and
   `cuere.rich.QRCode`, plus the CLI `--dark` / `--light` flags) now take `dark`
   and `light` colors for the dark modules and the light ground. A `Color` is a

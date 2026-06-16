@@ -1,4 +1,4 @@
-"""Command-line interface: ``cuere [DATA]``."""
+"""Command-line interface: `cuere [DATA]`."""
 
 import sys
 from pathlib import Path

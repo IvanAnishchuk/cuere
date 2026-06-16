@@ -1,4 +1,4 @@
-"""Entry point for ``python -m cuere``."""
+"""Entry point for `python -m cuere`."""
 
 from cuere.cli import app
 

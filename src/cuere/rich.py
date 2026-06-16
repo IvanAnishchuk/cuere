@@ -1,11 +1,13 @@
 """Rich renderable for QR codes.
 
-Usage::
+Example:
 
-    from rich.console import Console
-    from cuere.rich import QRCode
+```python
+from rich.console import Console
+from cuere.rich import QRCode
 
-    Console().print(QRCode("wc:..."), justify="center")
+Console().print(QRCode("wc:..."), justify="center")
+```
 """
 
 from typing import Unpack
@@ -35,9 +37,9 @@ _DEFAULT_FG, _DEFAULT_BG = resolve_pair(None, None)
 def _rich_color(resolved: int | tuple[int, int, int]) -> str:
     """Format a resolved color (palette index or rgb triple) as a Rich color string.
 
-    Consumes :func:`~cuere.render.resolve_pair`'s output so a Rich-rendered code
+    Consumes `resolve_pair`'s output so a Rich-rendered code
     uses exactly the colors the SGR text path would: a palette index becomes
-    ``"color(N)"`` and a truecolor triple becomes ``"rgb(r,g,b)"``.
+    `"color(N)"` and a truecolor triple becomes `"rgb(r,g,b)"`.
     """
     if isinstance(resolved, int):
         return f"color({resolved})"
@@ -49,7 +51,18 @@ ANSI_STYLE = Style(color=_rich_color(_DEFAULT_FG), bgcolor=_rich_color(_DEFAULT_
 
 
 class QRCode:
-    """A QR code that can be printed, centered, or framed by Rich."""
+    """A QR code that can be printed, centered, or framed by Rich.
+
+    Example:
+
+    ```python
+    from rich.console import Console
+    from rich.panel import Panel
+    from cuere.rich import QRCode
+
+    Console().print(Panel(QRCode("bitcoin:BC1Q..."), title="scan to pay"))
+    ```
+    """
 
     matrix: QRMatrix
     mode: RenderMode

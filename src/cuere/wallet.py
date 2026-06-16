@@ -1,21 +1,21 @@
 """Helpers for QR-encoding crypto-wallet URIs.
 
-QR alphanumeric mode covers only ``0-9 A-Z space $%*+-./:`` but produces a
+QR alphanumeric mode covers only `0-9 A-Z space $%*+-./:` but produces a
 much smaller code than byte mode. bech32 payloads (BIP-173) and their URI
-schemes are case-insensitive, so a fully lowercase ``bitcoin:bc1...`` or
-``lightning:lnbc...`` URI can be uppercased wholesale to qualify. The
+schemes are case-insensitive, so a fully lowercase `bitcoin:bc1...` or
+`lightning:lnbc...` URI can be uppercased wholesale to qualify. The
 transformation is restricted to those known case-insensitive schemes
-(:class:`SchemeCase`): it is never applied to schemes whose case is significant
-(``ethereum:`` with EIP-55 checksums, ``wc:`` WalletConnect), to mixed-case
+(`SchemeCase`): it is never applied to schemes whose case is significant
+(`ethereum:` with EIP-55 checksums, `wc:` WalletConnect), to mixed-case
 URIs, or to URIs whose uppercased form is not QR-alphanumeric (e.g. anything
-with a ``?...`` query string). :func:`scheme_case` exposes that classification.
+with a `?...` query string). `scheme_case` exposes that classification.
 
-This module also builds payment-request URIs: :func:`bitcoin_uri` (BIP-21),
-:func:`lightning_uri` (BOLT11 / LNURL / BOLT12), and the EIP-681
-:func:`ethereum_uri` / :func:`erc20_transfer_uri`. The ethereum builders emit
+This module also builds payment-request URIs: `bitcoin_uri` (BIP-21),
+`lightning_uri` (BOLT11 / LNURL / BOLT12), and the EIP-681
+`ethereum_uri` / `erc20_transfer_uri`. The ethereum builders emit
 byte-mode, case-significant URIs and must never be passed through
-:func:`optimize_uri`. See ``docs/bip-21.md``, ``docs/lightning-uri.md``, and
-``docs/eip-681.md``.
+`optimize_uri`. See `docs/bip-21.md`, `docs/lightning-uri.md`, and
+`docs/eip-681.md`.
 """
 
 import enum
@@ -31,22 +31,30 @@ _QR_ALPHANUMERIC = frozenset("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:")
 class SchemeCase(enum.Enum):
     """How a URI scheme's payload responds to case folding.
 
-    This is what decides whether :func:`optimize_uri` may uppercase a URI to
-    reach QR *alphanumeric* mode (a smaller code): only an :attr:`INSENSITIVE`
+    This is what decides whether `optimize_uri` may uppercase a URI to
+    reach QR *alphanumeric* mode (a smaller code): only an `INSENSITIVE`
     scheme is ever folded, the other two are always returned verbatim.
+
+    Example:
+
+    ```python
+    from cuere import scheme_case, SchemeCase
+
+    scheme_case("lightning:lnbc1...") is SchemeCase.INSENSITIVE   # True
+    ```
     """
 
     INSENSITIVE = "insensitive"
     """bech32 payload (BIP-173) — case carries no meaning, so uppercasing the
-    whole URI is lossless. ``bitcoin:`` and ``lightning:`` (BOLT11 / LNURL)."""
+    whole URI is lossless. `bitcoin:` and `lightning:` (BOLT11 / LNURL)."""
     SIGNIFICANT = "significant"
     """A scheme cuere knows to be case-significant — folding would corrupt it.
-    ``ethereum:`` (EIP-55 checksum case) and ``wc:`` (WalletConnect: a
+    `ethereum:` (EIP-55 checksum case) and `wc:` (WalletConnect: a
     case-significant relay protocol, a percent-encoded bridge URL, and an opaque
     pairing key)."""
     UNKNOWN = "unknown"
     """A scheme cuere does not recognize, or a string with no scheme at all.
-    Treated like :attr:`SIGNIFICANT` — never folded — because cuere cannot prove
+    Treated like `SIGNIFICANT` — never folded — because cuere cannot prove
     the transform is lossless."""
 
 
@@ -80,17 +88,37 @@ _ERR_AMOUNT_SUB_SATOSHI = "amount is finer than one satoshi"
 
 
 def is_qr_alphanumeric(data: str) -> bool:
-    """Whether ``data`` is non-empty and encodable in QR alphanumeric mode."""
+    """Whether `data` is non-empty and encodable in QR alphanumeric mode.
+
+    Example:
+
+    ```python
+    from cuere import is_qr_alphanumeric
+
+    is_qr_alphanumeric("BITCOIN:BC1Q...")   # True  — fits the compact mode
+    is_qr_alphanumeric("bitcoin:bc1q...")   # False — lowercase is byte mode
+    ```
+    """
     return bool(data) and all(char in _QR_ALPHANUMERIC for char in data)
 
 
 def scheme_case(uri: str) -> SchemeCase:
-    """Classify ``uri`` by how :func:`optimize_uri` treats its scheme's case.
+    """Classify `uri` by how `optimize_uri` treats its scheme's case.
 
-    The scheme is the text before the first ``:`` (compared case-insensitively,
-    per RFC 3986). A string with no ``:`` — hence no scheme — is
-    :attr:`SchemeCase.UNKNOWN`. Only an :attr:`SchemeCase.INSENSITIVE` scheme is
-    a candidate for optimization; see :func:`optimize_uri`.
+    The scheme is the text before the first `:` (compared case-insensitively,
+    per RFC 3986). A string with no `:` — hence no scheme — is
+    `SchemeCase.UNKNOWN`. Only an `SchemeCase.INSENSITIVE` scheme is
+    a candidate for optimization; see `optimize_uri`.
+
+    Example:
+
+    ```python
+    from cuere import scheme_case, SchemeCase
+
+    scheme_case("bitcoin:bc1q...") is SchemeCase.INSENSITIVE    # True
+    scheme_case("ethereum:0xAbC...") is SchemeCase.SIGNIFICANT  # True
+    scheme_case("mailto:a@b.com") is SchemeCase.UNKNOWN         # True
+    ```
     """
     scheme, sep, _ = uri.partition(":")
     if not sep:
@@ -107,12 +135,21 @@ def optimize_uri(uri: str) -> str:
     """Uppercase a bech32-scheme URI when that provably shrinks its QR code.
 
     Applied only when **all** of these hold: the scheme is case-insensitive
-    (:attr:`SchemeCase.INSENSITIVE` — ``bitcoin:`` or ``lightning:``), the URI
+    (`SchemeCase.INSENSITIVE` — `bitcoin:` or `lightning:`), the URI
     is already entirely lowercase (so uppercasing cannot destroy significant
     case), and the uppercased form is fully QR-alphanumeric (so a query string
     or any other non-alphanumeric byte rules it out). Idempotent; returns the
     input unchanged in every other case — including case-significant
-    (``ethereum:``, ``wc:``) and unrecognized schemes.
+    (`ethereum:`, `wc:`) and unrecognized schemes.
+
+    Example:
+
+    ```python
+    from cuere import optimize_uri
+
+    optimize_uri("bitcoin:bc1q...")    # -> "BITCOIN:BC1Q..." (smaller QR)
+    optimize_uri("ethereum:0xAbC...")  # unchanged (case-significant)
+    ```
     """
     if scheme_case(uri) is not SchemeCase.INSENSITIVE:
         return uri
@@ -125,13 +162,13 @@ def optimize_uri(uri: str) -> str:
 
 
 def _format_amount(amount: Decimal | int | str) -> str:
-    """Render a BIP-21 ``amount`` (in BTC) as a plain decimal string.
+    """Render a BIP-21 `amount` (in BTC) as a plain decimal string.
 
-    Accepts :class:`~decimal.Decimal`, ``int``, or ``str`` (never ``float`` —
-    binary floats can't represent decimal money exactly; and ``bool`` is rejected
-    even though it is an ``int``). The value must be a finite, positive number
+    Accepts `Decimal`, `int`, or `str` (never `float` —
+    binary floats can't represent decimal money exactly; and `bool` is rejected
+    even though it is an `int`). The value must be a finite, positive number
     with at most satoshi (8-decimal) precision; anything else raises
-    :class:`~cuere.errors.WalletURIError`.
+    `WalletURIError`.
     """
     if isinstance(amount, bool):  # bool is an int subtype; True would become "1"
         raise WalletURIError(_ERR_AMOUNT_BOOL, amount)
@@ -159,17 +196,28 @@ def bitcoin_uri(
     label: str | None = None,
     message: str | None = None,
 ) -> str:
-    """Build a well-formed BIP-21 ``bitcoin:`` payment URI.
+    """Build a well-formed BIP-21 `bitcoin:` payment URI.
 
-    ``address`` is validated structurally (base58 or bech32/bech32m alphabet);
-    ``amount`` is a BTC value (see :func:`_format_amount`); ``label`` and
-    ``message`` are free text and get percent-encoded. Parameters left as
-    ``None`` are omitted; an explicit empty ``label``/``message`` is kept as an
-    empty value. Invalid input raises :class:`~cuere.errors.WalletURIError`.
+    `address` is validated structurally (base58 or bech32/bech32m alphabet);
+    `amount` is a BTC value (see `_format_amount`); `label` and
+    `message` are free text and get percent-encoded. Parameters left as
+    `None` are omitted; an explicit empty `label`/`message` is kept as an
+    empty value. Invalid input raises `WalletURIError`.
 
-    The result is a plain ``str``: pass it to :func:`optimize_uri` (a bare
-    address with no query shrinks to QR-alphanumeric) and then to ``render`` /
-    ``show`` to draw the code.
+    The result is a plain `str`: pass it to `optimize_uri` (a bare
+    address with no query shrinks to QR-alphanumeric) and then to `render` /
+    `show` to draw the code.
+
+    Example:
+
+    ```python
+    from decimal import Decimal
+    from cuere import bitcoin_uri, optimize_uri, show
+
+    addr = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+    uri = bitcoin_uri(addr, amount=Decimal("0.01"), label="Tip")
+    show(optimize_uri(uri))
+    ```
     """
     if not _BITCOIN_ADDRESS.fullmatch(address):
         raise WalletURIError(_ERR_BAD_ADDRESS, address)
@@ -201,20 +249,28 @@ _ERR_BAD_LIGHTNING = "not a lightning payload (BOLT11 invoice, LNURL, or BOLT12 
 
 
 def lightning_uri(payload: str) -> str:
-    """Build a ``lightning:`` URI from a bech32 Lightning payload.
+    """Build a `lightning:` URI from a bech32 Lightning payload.
 
-    ``payload`` is a BOLT11 invoice (``lnbc…`` / ``lntb…`` / …), an LNURL
-    (``lnurl1…``), or a BOLT12 offer (``lno1…``) — any bech32 string whose
-    human-readable part begins ``ln``. It is validated **structurally** — a
-    single-case run of ASCII alphanumerics beginning ``ln`` (the bech32 charset
+    `payload` is a BOLT11 invoice (`lnbc…` / `lntb…` / …), an LNURL
+    (`lnurl1…`), or a BOLT12 offer (`lno1…`) — any bech32 string whose
+    human-readable part begins `ln`. It is validated **structurally** — a
+    single-case run of ASCII alphanumerics beginning `ln` (the bech32 charset
     is a subset of that) — but its checksum is not verified, mirroring
-    :func:`bitcoin_uri`. An empty string, a mixed-case payload, or one carrying a
-    ``:`` / ``@`` / query character raises :class:`~cuere.errors.WalletURIError`.
+    `bitcoin_uri`. An empty string, a mixed-case payload, or one carrying a
+    `:` / `@` / query character raises `WalletURIError`.
 
-    The result is a plain ``str``. A lowercase payload composes with
-    :func:`optimize_uri`, which uppercases the URI to QR-alphanumeric mode for a
-    smaller code (``lightning:`` is :attr:`SchemeCase.INSENSITIVE`); pass the
-    result to ``render`` / ``show`` to draw it.
+    The result is a plain `str`. A lowercase payload composes with
+    `optimize_uri`, which uppercases the URI to QR-alphanumeric mode for a
+    smaller code (`lightning:` is `SchemeCase.INSENSITIVE`); pass the
+    result to `render` / `show` to draw it.
+
+    Example:
+
+    ```python
+    from cuere import lightning_uri, optimize_uri, show
+
+    show(optimize_uri(lightning_uri("lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqf")))
+    ```
     """
     if not _LIGHTNING_PAYLOAD.fullmatch(payload):
         raise WalletURIError(_ERR_BAD_LIGHTNING, payload)
@@ -246,26 +302,26 @@ _ERR_UINT_TOO_LARGE = "does not fit in a uint256"
 
 
 def _reason(field: str, problem: str) -> str:
-    """Compose a field-qualified ``WalletURIError`` reason (e.g. ``"value ..."``).
+    """Compose a field-qualified `WalletURIError` reason (e.g. `"value ..."`).
 
     Built in a helper rather than inlined at the raise site so no message string
     literal is passed to the exception constructor — the pattern ruff TRY003
-    enforces (see :class:`~cuere.errors.WalletURIError`).
+    enforces (see `WalletURIError`).
     """
     return f"{field} {problem}"
 
 
 def _coerce_uint256(value: int | Decimal | str, field: str) -> int:
-    """Validate ``value`` as an EVM ``uint256`` and return it as ``int``.
+    """Validate `value` as an EVM `uint256` and return it as `int`.
 
-    Accepts :class:`int`, a base-10 :class:`str`, or an integral
-    :class:`~decimal.Decimal` (``bool`` is rejected even though it is an ``int``;
+    Accepts `int`, a base-10 `str`, or an integral
+    `Decimal` (`bool` is rejected even though it is an `int`;
     a non-integral, non-finite, negative, or out-of-uint256-range value is
-    rejected too). The accepted range is the full ``uint256`` domain
-    ``0 … 2**256 - 1`` — ``0`` is valid (it is the EVM word's natural default),
-    unlike a BIP-21 ``amount`` which must be positive. ``field`` names the
+    rejected too). The accepted range is the full `uint256` domain
+    `0 … 2**256 - 1` — `0` is valid (it is the EVM word's natural default),
+    unlike a BIP-21 `amount` which must be positive. `field` names the
     offending parameter for the message. Raises
-    :class:`~cuere.errors.WalletURIError` on any failure.
+    `WalletURIError` on any failure.
     """
     if isinstance(value, bool):  # bool is an int subtype; True would become 1
         raise WalletURIError(_reason(field, _ERR_UINT_BOOL), value)
@@ -284,11 +340,11 @@ def _coerce_uint256(value: int | Decimal | str, field: str) -> int:
 
 
 def _eth_address(address: str, field: str) -> str:
-    """Return ``address`` unchanged if it is a structurally valid 0x address.
+    """Return `address` unchanged if it is a structurally valid 0x address.
 
     Case is preserved verbatim (it carries the EIP-55 checksum when mixed-case;
     an all-lower/all-upper address simply has no checksum). Raises
-    :class:`~cuere.errors.WalletURIError` otherwise.
+    `WalletURIError` otherwise.
     """
     if not _ETH_ADDRESS.fullmatch(address):
         raise WalletURIError(_reason(field, _ERR_BAD_ETH_ADDRESS), address)
@@ -300,10 +356,10 @@ def _chain_and_gas(
     gas_limit: int | None,
     gas_price: int | Decimal | str | None,
 ) -> tuple[str, list[str]]:
-    """Build the ``@<chain_id>`` suffix and the ``gasLimit``/``gasPrice`` params.
+    """Build the `@<chain_id>` suffix and the `gasLimit`/`gasPrice` params.
 
-    Shared by both EIP-681 builders: ``chain_id`` (if given) becomes the
-    ``@<chain_id>`` that sits between the address and the path/query, and the
+    Shared by both EIP-681 builders: `chain_id` (if given) becomes the
+    `@<chain_id>` that sits between the address and the path/query, and the
     gas parameters are appended (in EIP-681 order) to the query.
     """
     suffix = f"@{_coerce_uint256(chain_id, 'chain_id')}" if chain_id is not None else ""
@@ -323,21 +379,31 @@ def ethereum_uri(
     gas_limit: int | None = None,
     gas_price: int | Decimal | str | None = None,
 ) -> str:
-    """Build an EIP-681 ``ethereum:`` native-payment URI.
+    """Build an EIP-681 `ethereum:` native-payment URI.
 
-    ``address`` is the recipient, validated structurally as ``0x`` + 40 hex
+    `address` is the recipient, validated structurally as `0x` + 40 hex
     digits with its case preserved (it carries the EIP-55 checksum when
-    mixed-case). ``value`` is the amount in **wei** (1 ETH = 10\\ :sup:`18` wei),
-    a non-negative integer ``uint256``; ``gas_price`` is likewise in wei and
-    ``gas_limit`` is a gas-unit count.
-    ``chain_id`` (EIP-155, e.g. ``1`` for mainnet) is emitted as ``@<chain_id>``.
-    Parameters left as ``None`` are omitted. Invalid input raises
-    :class:`~cuere.errors.WalletURIError`.
+    mixed-case). `value` is the amount in **wei** (1 ETH = `10**18` wei),
+    a non-negative integer `uint256`; `gas_price` is likewise in wei and
+    `gas_limit` is a gas-unit count.
+    `chain_id` (EIP-155, e.g. `1` for mainnet) is emitted as `@<chain_id>`.
+    Parameters left as `None` are omitted. Invalid input raises
+    `WalletURIError`.
 
-    The result is a plain ``str`` to pass to ``render`` / ``show``. Do **not**
-    run it through :func:`optimize_uri`: the EIP-55 checksum is case-significant,
-    so uppercasing would corrupt the address (``optimize_uri`` already refuses
-    the ``ethereum:`` scheme for this reason).
+    The result is a plain `str` to pass to `render` / `show`. Do **not**
+    run it through `optimize_uri`: the EIP-55 checksum is case-significant,
+    so uppercasing would corrupt the address (`optimize_uri` already refuses
+    the `ethereum:` scheme for this reason).
+
+    Example:
+
+    ```python
+    from cuere import ethereum_uri, show
+
+    # 0.01 ETH = 10**16 wei, on Ethereum mainnet (chain_id=1)
+    show(ethereum_uri("0xfb6916095ca1df60bb79Ce92ce3ea74c37c5d359",
+                      value=10**16, chain_id=1))
+    ```
     """
     target = _eth_address(address, "address")
     suffix, params = _chain_and_gas(chain_id, gas_limit, gas_price)
@@ -360,18 +426,33 @@ def erc20_transfer_uri(
     gas_limit: int | None = None,
     gas_price: int | Decimal | str | None = None,
 ) -> str:
-    """Build an EIP-681 ERC-20 ``transfer`` URI: ``ethereum:<token>/transfer?…``.
+    """Build an EIP-681 ERC-20 `transfer` URI: `ethereum:<token>/transfer?…`.
 
-    Encodes a call to the token's ``transfer(address,uint256)`` function.
-    ``token`` is the ERC-20 contract address and ``to`` the recipient, both
-    validated as ``0x`` + 40 hex digits with case preserved. ``amount`` is a
-    non-negative integer in the token's **base units** (its own ``decimals`` —
+    Encodes a call to the token's `transfer(address,uint256)` function.
+    `token` is the ERC-20 contract address and `to` the recipient, both
+    validated as `0x` + 40 hex digits with case preserved. `amount` is a
+    non-negative integer in the token's **base units** (its own `decimals` —
     which this library cannot know — so no scaling is applied); it is emitted as
-    the ``uint256`` argument. ``chain_id`` / ``gas_limit`` / ``gas_price`` behave as
-    in :func:`ethereum_uri`. Invalid input raises
-    :class:`~cuere.errors.WalletURIError`.
+    the `uint256` argument. `chain_id` / `gas_limit` / `gas_price` behave as
+    in `ethereum_uri`. Invalid input raises
+    `WalletURIError`.
 
-    As with :func:`ethereum_uri`, never pass the result to :func:`optimize_uri`.
+    As with `ethereum_uri`, never pass the result to `optimize_uri`.
+
+    Example:
+
+    ```python
+    from cuere import erc20_transfer_uri, show
+
+    # transfer 1 USDC (6 decimals -> 1_000_000 base units) on mainnet
+    uri = erc20_transfer_uri(
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        to="0x8e23ee67d1332ad560396262c48ffbb01f93d052",
+        amount=1_000_000,
+        chain_id=1,
+    )
+    show(uri)
+    ```
     """
     target = _eth_address(token, "token")
     recipient = _eth_address(to, "to")

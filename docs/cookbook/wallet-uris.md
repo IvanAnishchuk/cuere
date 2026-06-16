@@ -4,7 +4,7 @@ Recipes for the crypto-wallet use case: turn a payment request or a pairing URI
 into a QR code you can show in a terminal and scan with a phone wallet. For the
 underlying URI formats see the [BIP-21](../bip-21.md),
 [Lightning](../lightning-uri.md), and [EIP-681](../eip-681.md) summaries; for the
-rendering model and CLI see the [README](../../README.md).
+rendering model and CLI see the [README](https://github.com/IvanAnishchuk/cuere#readme).
 
 Each builder returns a plain `str`, so it composes with the rest of cuere —
 [`optimize_uri`](../../src/cuere/wallet.py) to shrink the code and
@@ -137,7 +137,7 @@ show(uri)   # draw it in the terminal
 A `lightning:` URI is bech32 and so case-insensitive, just like a bare `bitcoin:`
 address — pass a lowercase one through `optimize_uri` to uppercase it into QR
 *alphanumeric* mode for a smaller, faster-to-scan code (see
-[Shrinking codes](#shrinking-codes-optimize_uri--scheme_case) below). Lightning
+[Shrinking codes](#shrinking-codes-optimize_uri-scheme_case) below). Lightning
 *addresses* (`user@domain`) are **not** bech32 and are out of scope. For the
 formats see the [Lightning summary](../lightning-uri.md).
 

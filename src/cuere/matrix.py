@@ -1,7 +1,7 @@
 """QR encoding layer.
 
 This is the only module that talks to segno; everything else operates on
-:class:`QRMatrix`.
+`QRMatrix`.
 """
 
 import enum
@@ -16,9 +16,17 @@ from cuere.errors import EncodingError
 class ECLevel(enum.StrEnum):
     """QR error-correction level.
 
-    ``L`` is the default everywhere in cuere: codes shown on screens are not
+    `L` is the default everywhere in cuere: codes shown on screens are not
     subject to physical damage, and lower correction means fewer modules, so
     the code fits a terminal (this matches what Claude Code CLI does).
+
+    Example:
+
+    ```python
+    from cuere import ECLevel, render
+
+    render("HELLO", error=ECLevel.M)   # more robust, slightly larger code
+    ```
     """
 
     L = "L"
@@ -31,7 +39,18 @@ class ECLevel(enum.StrEnum):
 class QRMatrix:
     """Immutable QR module matrix with the quiet zone baked in.
 
-    ``modules`` rows must be rectangular; ``True`` is a dark module.
+    `modules` rows must be rectangular; `True` is a dark module.
+
+    Example:
+
+    ```python
+    from cuere import QRMatrix, render
+
+    m = QRMatrix.encode("HELLO")        # build the matrix once
+    print(m.version, m.width, m.height)
+    print(render(m))                    # render a pre-built matrix
+    print(render(m.inverted()))         # dark/light flipped
+    ```
     """
 
     modules: tuple[tuple[bool, ...], ...]
@@ -48,9 +67,9 @@ class QRMatrix:
         micro: bool = False,
         boost_error: bool = False,
     ) -> Self:
-        """Encode ``data`` into a QR matrix.
+        """Encode `data` into a QR matrix.
 
-        ``boost_error`` is off by default on purpose: segno would otherwise
+        `boost_error` is off by default on purpose: segno would otherwise
         silently raise the error-correction level when space allows, growing
         the module count for no benefit on a screen.
         """
@@ -84,14 +103,14 @@ class QRMatrix:
 
 
 type Encodable = str | bytes | QRMatrix
-"""Anything the high-level API renders: raw ``str``/``bytes``, or a built matrix."""
+"""Anything the high-level API renders: raw `str`/`bytes`, or a built matrix."""
 
 
 class EncodeOptions(TypedDict, total=False):
-    """Encoding keywords the high-level API forwards to :meth:`QRMatrix.encode`.
+    """Encoding keywords the high-level API forwards to `QRMatrix.encode`.
 
-    Declared once and spread via ``**opts: Unpack[EncodeOptions]`` so the
-    option set and its defaults live in a single place (``QRMatrix.encode``).
+    Declared once and spread via `**opts: Unpack[EncodeOptions]` so the
+    option set and its defaults live in a single place (`QRMatrix.encode`).
     """
 
     error: ECLevel | str
@@ -101,10 +120,10 @@ class EncodeOptions(TypedDict, total=False):
 
 
 def coerce(data: Encodable, **options: Unpack[EncodeOptions]) -> QRMatrix:
-    """Return ``data`` as a :class:`QRMatrix`, encoding str/bytes input.
+    """Return `data` as a `QRMatrix`, encoding str/bytes input.
 
-    The encode options (``error``/``border``/``micro``/``boost_error``) apply
-    only when ``data`` is encoded; a pre-built :class:`QRMatrix` is returned
+    The encode options (`error`/`border`/`micro`/`boost_error`) apply
+    only when `data` is encoded; a pre-built `QRMatrix` is returned
     unchanged.
     """
     if isinstance(data, QRMatrix):

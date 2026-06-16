@@ -21,16 +21,27 @@ OnTooWide = Literal["error", "warn", "render"]
 
 
 class SupportsWrite(Protocol):
-    """A text sink: any object with a ``write(str)`` method.
+    """A text sink: any object with a `write(str)` method.
 
-    ``show`` writes a single string and probes ``isatty`` defensively via
-    ``getattr``, so it needs only this much of a stream — ``sys.stdout``,
-    ``io.StringIO``, and minimal write-only wrappers all qualify. This is
-    deliberately narrower than ``typing.IO[str]``.
+    `show` writes a single string and probes `isatty` defensively via
+    `getattr`, so it needs only this much of a stream — `sys.stdout`,
+    `io.StringIO`, and minimal write-only wrappers all qualify. This is
+    deliberately narrower than `typing.IO[str]`.
+
+    Example:
+
+    ```python
+    import io
+    from cuere import show
+
+    buf = io.StringIO()      # any object with .write(str) is a SupportsWrite
+    show("HELLO", out=buf)
+    captured = buf.getvalue()
+    ```
     """
 
     def write(self, s: str, /) -> object:
-        """Write ``s`` to the sink; the return value is ignored."""
+        """Write `s` to the sink; the return value is ignored."""
 
 
 def render(
@@ -42,10 +53,20 @@ def render(
     light: Color | None = None,
     **options: Unpack[EncodeOptions],
 ) -> str:
-    """Encode ``data`` (unless it is already a :class:`QRMatrix`) and render it.
+    """Encode `data` (unless it is already a `QRMatrix`) and render it.
 
-    ``dark`` / ``light`` customize ANSI mode's module colors (see
-    :func:`cuere.render.render_matrix`); they are only valid for ``mode="ansi"``.
+    `dark` / `light` customize ANSI mode's module colors (see
+    `cuere.render.render_matrix`); they are only valid for `mode="ansi"`.
+
+    Example:
+
+    ```python
+    from cuere import render
+
+    text = render("HELLO")                    # half-block QR as a str
+    colored = render("HELLO", mode="ansi")    # theme-proof SGR colors
+    wide = render("HELLO", mode="block", invert=True)
+    ```
     """
     matrix = coerce(data, **options)
     return render_matrix(matrix, mode=coerce_mode(mode), invert=invert, dark=dark, light=light)
@@ -62,8 +83,17 @@ def fits(
     """Whether the rendered code fits the terminal in both dimensions.
 
     Width is the hard constraint (wrapping destroys a scan); height is checked
-    too because a code taller than the screen scrolls out of view. ``width``
-    and ``height`` default to the current terminal size.
+    too because a code taller than the screen scrolls out of view. `width`
+    and `height` default to the current terminal size.
+
+    Example:
+
+    ```python
+    from cuere import fits, show
+
+    if fits("https://example.com"):
+        show("https://example.com")   # known to fit the current terminal
+    ```
     """
     matrix = coerce(data, **options)
     render_mode = coerce_mode(mode)
@@ -86,17 +116,26 @@ def show(
     light: Color | None = None,
     **options: Unpack[EncodeOptions],
 ) -> None:
-    """Render ``data`` and write it to ``out`` (default ``sys.stdout``).
+    """Render `data` and write it to `out` (default `sys.stdout`).
 
     The fit check is width-only: wrapping destroys a code, but a code taller
     than the terminal merely scrolls and stays scannable, so height is not
-    gated here (use :func:`fits` for a height-aware predicate).
+    gated here (use `fits` for a height-aware predicate).
 
-    ANSI mode silently falls back to HALF when ``NO_COLOR`` is set or the
-    stream is not a tty, unless ``force=True``: raw SGR codes in logs or
-    pipelines are worse than a theme-dependent code. ``dark`` / ``light``
-    customize ANSI mode's colors (only valid for ``mode="ansi"``); when ANSI
+    ANSI mode silently falls back to HALF when `NO_COLOR` is set or the
+    stream is not a tty, unless `force=True`: raw SGR codes in logs or
+    pipelines are worse than a theme-dependent code. `dark` / `light`
+    customize ANSI mode's colors (only valid for `mode="ansi"`); when ANSI
     falls back, they are dropped with it so a no-color terminal gets plain glyphs.
+
+    Example:
+
+    ```python
+    from cuere import show
+
+    show("https://example.com")             # to sys.stdout
+    show("HELLO", mode="ansi", force=True)  # keep colors even when piped
+    ```
     """
     stream = out if out is not None else sys.stdout
     matrix = coerce(data, **options)

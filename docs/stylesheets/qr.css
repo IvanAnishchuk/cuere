@@ -1,0 +1,48 @@
+/* Scannable half-block QR art on the docs site.
+ *
+ * cuere renders QR codes as Unicode half-block glyphs (`▀ ▄ █`): each character
+ * cell encodes two vertically-stacked modules (top half / bottom half). They
+ * only tile seamlessly into a scannable code when the line box is exactly as
+ * tall as the glyph — i.e. `line-height: 1`. The Material/zensical theme styles
+ * code blocks with `.md-typeset pre { line-height: 1.4 }` (readable leading for
+ * source samples), which injects a sliver of the background colour between every
+ * glyph row, lands mid-module, and splits the QR vertically so phones can't lock
+ * on. (Horizontal continuity is fine — the glyphs are full-width.)
+ *
+ * Fix: force `line-height: 1` on QR-art blocks only. Art blocks opt in with a
+ * `{ .qr }` info string on a fenced ```text block (see scripts/render_docs_qr.py),
+ * which the highlighter emits as `<div class="language-text qr highlight">`, so
+ * ordinary code samples keep their readable leading. The `.md-typeset .qr`
+ * selector (specificity 0,2,1) outranks the theme's `.md-typeset pre` (0,1,1)
+ * regardless of stylesheet order; extra_css also loads after the theme CSS.
+ *
+ * (Ligatures are already disabled — the theme sets `font-variant-ligatures: none`
+ * on `.md-typeset code` — so the box-drawing glyphs stay one module per cell.) */
+.md-typeset .qr pre,
+.md-typeset .qr code {
+  line-height: 1;
+  /* No inter-cell drift, and never reflow a module row (a wrapped row is
+   * unscannable — the block scrolls horizontally instead). */
+  letter-spacing: 0;
+  white-space: pre;
+}
+
+/* Two more things a half-block QR needs to actually scan from the rendered page,
+ * applied to the code box whose background is the QR's light ground:
+ *
+ * 1. Quiet zone. cuere renders a 4-module quiet zone on every side, but the
+ *    syntax highlighter strips the art's blank leading/trailing rows, dropping
+ *    the TOP and BOTTOM zones (the left/right ones survive as in-line spaces).
+ *    Restore them with ~2em (≈ 4 modules at line-height:1) of vertical padding;
+ *    the theme's horizontal padding is left untouched.
+ *
+ * 2. Polarity. A QR must read dark-on-light, but the theme flips code colours to
+ *    light-on-dark in slate (dark) mode — an inverted code many scanners reject.
+ *    Pin maximum-contrast black-on-white in both themes so the code always
+ *    scans. (This is intentionally a bright panel in dark mode.) */
+.md-typeset .qr pre > code {
+  padding-top: 2em;
+  padding-bottom: 2em;
+  background-color: #fff;
+  color: #000;
+}

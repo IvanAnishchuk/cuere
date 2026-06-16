@@ -50,7 +50,7 @@ show(uri)   # draw it in the terminal
 ```
 
 <!-- qr: BTC_FULL -->
-```text
+```text { .qr }
                                              
                                              
     █▀▀▀▀▀█ ▄█ ▄▄▄▀▄█▀▀▀█ █▀█▄▀▄█ █▀▀▀▀▀█    
@@ -110,7 +110,7 @@ show(uri)   # draw it in the terminal
 ```
 
 <!-- qr: LN -->
-```text
+```text { .qr }
                                          
                                          
     █▀▀▀▀▀█ ▀▀▀█▄███ ▀▄▄ ▀    █▀▀▀▀▀█    
@@ -163,7 +163,7 @@ show(uri)   # draw it in the terminal
 ```
 
 <!-- qr: ETH -->
-```text
+```text { .qr }
                                          
                                          
     █▀▀▀▀▀█ ▄█▀▀█▀█▄▄▄▄▀▄▀ ▀▄ █▀▀▀▀▀█    
@@ -215,7 +215,7 @@ show(uri)
 ```
 
 <!-- qr: ERC20 -->
-```text
+```text { .qr }
                                                  
                                                  
     █▀▀▀▀▀█ ▄▄▀██ ▀▄▀▀█ ██   ▄█▄▄▄▄▀▄ █▀▀▀▀▀█    
@@ -265,7 +265,7 @@ scheme_case(pairing)      # SchemeCase.SIGNIFICANT
 ```
 
 <!-- qr: WC -->
-```text
+```text { .qr }
                                      
                                      
     █▀▀▀▀▀█ ▄█ ▄▄█ ███▀▀▀ █▀▀▀▀▀█    
@@ -314,7 +314,7 @@ show(optimize_uri(bitcoin_uri(addr)))
 ```
 
 <!-- qr: BTC_OPT -->
-```text
+```text { .qr }
                                      
                                      
     █▀▀▀▀▀█ █  ▄▄▄█▄ ▀  ▀ █▀▀▀▀▀█    

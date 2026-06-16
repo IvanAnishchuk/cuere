@@ -63,11 +63,15 @@ install's import hook otherwise shadows the mutated tree. See
 
 ## Working on this project
 
-- **Project management runs through the `/solo-pm` skill.** This is a solo /
-  AI-assisted project tracked on a GitHub Projects v2 board; use `/solo-pm` for
-  sprint planning, estimation, status updates, and velocity/calibration rather
-  than improvising a process. It is the PM manual — reach for it whenever you
-  plan, prioritize, estimate, or report on work.
+- **Project management runs through the `/solo-pm` skill — invoke it
+  automatically, without being asked.** This is a solo / AI-assisted project
+  tracked on a GitHub Projects v2 board; `/solo-pm` is the PM manual and the
+  default entry point for *any* project-management activity. Invoke it
+  proactively — at the start of a session that resumes a board item, and
+  whenever you plan, prioritize, estimate, update status, move a board card,
+  log token spend, or report on work — rather than improvising a process or
+  waiting for the user to request it. The only PM work that skips it is a
+  trivial one-line status mention inside other work.
 - **Run `/code-review` before every push / PR, and to audit already-merged
   code.** It is the real review gate here. The GitHub review bots are
   unreliable on this repo (CodeRabbit out of credits; Codex/Copilot at usage

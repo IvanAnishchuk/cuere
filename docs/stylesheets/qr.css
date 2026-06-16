@@ -27,22 +27,27 @@
   white-space: pre;
 }
 
-/* Two more things a half-block QR needs to actually scan from the rendered page,
- * applied to the code box whose background is the QR's light ground:
- *
- * 1. Quiet zone. cuere renders a 4-module quiet zone on every side, but the
- *    syntax highlighter strips the art's blank leading/trailing rows, dropping
- *    the TOP and BOTTOM zones (the left/right ones survive as in-line spaces).
- *    Restore them with ~2em (≈ 4 modules at line-height:1) of vertical padding;
- *    the theme's horizontal padding is left untouched.
- *
- * 2. Polarity. A QR must read dark-on-light, but the theme flips code colours to
- *    light-on-dark in slate (dark) mode — an inverted code many scanners reject.
- *    Pin maximum-contrast black-on-white in both themes so the code always
- *    scans. (This is intentionally a bright panel in dark mode.) */
+/* Polarity. A QR must read dark-on-light, but the theme flips code colours to
+ * light-on-dark in slate (dark) mode — an inverted code many scanners reject.
+ * Pin maximum-contrast black-on-white in both themes so the code always scans.
+ * Apply it to BOTH the `pre` and the `code`: the `pre` has no background of its
+ * own (transparent → dark in slate), and `pre > code` is rounded, so colouring
+ * only the code would leave a dark frame / dark corners bleeding around the QR in
+ * dark mode. Whitening the whole block makes it one solid panel in both themes.
+ * (This is intentionally a bright panel in dark mode.) */
+.md-typeset .qr pre,
+.md-typeset .qr pre > code {
+  background-color: #fff;
+  color: #000;
+}
+
+/* Quiet zone. cuere renders a 4-module quiet zone on every side, but the syntax
+ * highlighter strips the art's blank leading/trailing rows, dropping the TOP and
+ * BOTTOM zones (the left/right ones survive as in-line spaces). Restore them with
+ * ~2em (≈ 4 modules at line-height:1) of vertical padding on the code box (its
+ * background is now the QR's white ground); the theme's horizontal padding is
+ * left untouched. */
 .md-typeset .qr pre > code {
   padding-top: 2em;
   padding-bottom: 2em;
-  background-color: #fff;
-  color: #000;
 }

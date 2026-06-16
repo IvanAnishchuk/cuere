@@ -13,6 +13,11 @@ docs_dir = "docs"
 site_dir = "site"
 copyright = "Released to the public domain under CC0-1.0."
 
+# Custom stylesheet (copied from docs/ into the built site, linked after the
+# theme CSS). Forces line-height:1 on `.qr` half-block QR-art blocks so the
+# embedded codes stay scannable — see docs/stylesheets/qr.css and issue #68.
+extra_css = ["stylesheets/qr.css"]
+
 nav = [
     { "Home" = "index.md" },
     { "Quickstart" = "quickstart.md" },

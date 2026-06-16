@@ -143,7 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   recipes in `docs/cookbook/exporting.md` (the flat `docs/cookbook.md` is gone).
   The wallet page now embeds the rendered terminal QR for every recipe, adds a
   standalone WalletConnect (`wc:`) rendering recipe, and explains why cuere
-  encodes at error-correction level L. A new `scripts/render_cookbook_qr.py`
+  encodes at error-correction level L. A `scripts/render_docs_qr.py` script
   regenerates that embedded art (run with `--check` in CI to catch drift).
 - `optimize_uri()` is refactored onto the new `scheme_case()`; its behavior is
   unchanged (case-insensitive, lowercase, no-query URIs are uppercased;
@@ -172,6 +172,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Embedded half-block QR art now scans from the rendered documentation site.
+  The Material/zensical theme styled code blocks with `line-height: 1.4`, which
+  injected a horizontal sliver between every glyph row and split the codes
+  vertically, and the syntax highlighter stripped the art's blank quiet-zone
+  rows. A scoped `docs/stylesheets/qr.css` (wired via `extra_css`) forces
+  `line-height: 1`, restores the top/bottom quiet zone, and pins black-on-white
+  so the codes read in both the light and dark themes; art blocks opt in with a
+  `{ .qr }` fence info string. The homepage hero QR — previously corrupted (no
+  quiet zone, rows truncated by the trailing-whitespace hook) — is re-rendered
+  with a full quiet zone and excluded from that hook. The QR-art generator is
+  generalized from the cookbook to all docs pages and renamed
+  `scripts/render_docs_qr.py`, so its `--check` drift guard now also covers the
+  homepage. Closes #68.
 - The CLI now reports a clean `error: …` (exit 1) instead of an uncaught
   traceback when `--input` or stdin holds non-UTF-8 bytes (`UnicodeDecodeError`
   is a `ValueError`, so it previously slipped past the `(CuereError, OSError)`

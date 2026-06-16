@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`uv sync --extra docs`). Every public symbol's docstring now carries a
   usage example. Closes #10, #11, #12, #13.
 
+- A `Docs` CI workflow (`.github/workflows/docs.yml`) that builds the
+  documentation site with `zensical build --strict` as a gate on every pull
+  request to `main`, and deploys it to GitHub Pages on push to `main`. The
+  README gains a documentation badge and a link to the published site at
+  <https://ivananishchuk.github.io/cuere/>. Closes #15.
+
 - Terminal color customization for `ansi` mode. `render` / `show` (and
   `cuere.rich.QRCode`, plus the CLI `--dark` / `--light` flags) now take `dark`
   and `light` colors for the dark modules and the light ground. A `Color` is a

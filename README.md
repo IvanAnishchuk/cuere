@@ -5,6 +5,7 @@
 [![lint](https://github.com/IvanAnishchuk/cuere/actions/workflows/lint.yml/badge.svg)](https://github.com/IvanAnishchuk/cuere/actions/workflows/lint.yml)
 [![typecheck](https://github.com/IvanAnishchuk/cuere/actions/workflows/typecheck.yml/badge.svg)](https://github.com/IvanAnishchuk/cuere/actions/workflows/typecheck.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IvanAnishchuk/cuere/badge)](https://scorecard.dev/viewer/?uri=github.com/IvanAnishchuk/cuere)
+[![Documentation](https://img.shields.io/badge/docs-cuere-3b8?logo=materialformkdocs)](https://ivananishchuk.github.io/cuere/)
 
 QR codes in your terminal — the way Claude Code CLI draws its remote-connection
 codes: Unicode half-blocks, low error correction so the code stays small, a
@@ -24,6 +25,8 @@ and helpers for crypto-wallet URIs.
 █ ▀▀▀ █ █ ▄▀ ▀ ▄█ █ ▄
 ▀▀▀▀▀▀▀ ▀  ▀ ▀  ▀ ▀
 ```
+
+📖 **Full documentation: [ivananishchuk.github.io/cuere](https://ivananishchuk.github.io/cuere/)**
 
 ## Install
 

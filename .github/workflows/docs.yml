@@ -1,0 +1,89 @@
+# Build the docs and deploy them to GitHub Pages.
+# Build runs on every push/PR to main as a docs CI gate (zensical --strict);
+# deploy runs only on push to main. Mirrors cuere's workflow hardening (pinned
+# SHAs, harden-runner, persist-credentials:false, least-privilege permissions).
+# NOTE: GitHub Pages must be enabled manually (Settings -> Pages -> Source:
+# GitHub Actions) before the deploy job can succeed. Re-verify action SHAs are
+# current when this lands (pins go stale).
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    # Cancel superseded build runs for the same ref (e.g. PR re-pushes); matches
+    # the repo's per-workflow concurrency idiom.
+    concurrency:
+      group: docs-build-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install dependencies
+        # No --dev: the docs build needs only the package + the docs extra, not
+        # the dev toolchain (ruff/mypy/mutmut/meson/pillow). meson-python comes
+        # from build-system.requires during the editable build, not the dev group.
+        run: uv sync --frozen --no-dev --extra docs
+
+      - name: Build site (strict)
+        # --no-sync: reuse the env from the install step above instead of letting
+        # `uv run` re-sync (which would drop --no-dev and reinstall the dev group).
+        run: uv run --no-sync zensical build --clean --strict
+
+      - name: Upload Pages artifact
+        # Only on push to main; PR runs are a build-only --strict gate.
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site/
+
+  deploy:
+    name: Deploy to GitHub Pages
+    # Deploy only from main; PRs run build-only as the docs gate.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # GitHub Pages best practice: serialize deploys and never cancel one in
+    # progress — a cancelled production deploy can leave Pages in a stuck state.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

@@ -103,13 +103,15 @@ terminal footprint (in columns / rows) for a matrix and mode.
 ## Micro QR
 
 `micro=True` (`--micro`) produces a **Micro QR** code — smaller, for small
-payloads only. Micro codes carry less data and support fewer error-correction
-levels; an oversized payload or an unsupported level raises
-[`EncodingError`](../reference/api.md#cuere.errors.EncodingError):
+payloads only:
 
 ```python
-show("123", micro=True)
+show("123", micro=True)   # a short numeric payload fits a Micro QR
 ```
+
+Micro codes carry less data and support fewer error-correction levels; an
+oversized payload or an unsupported level raises
+[`EncodingError`](../reference/api.md#cuere.errors.EncodingError).
 
 ## Scanning tips
 

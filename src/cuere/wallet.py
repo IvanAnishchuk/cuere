@@ -214,7 +214,8 @@ def bitcoin_uri(
     from decimal import Decimal
     from cuere import bitcoin_uri, optimize_uri, show
 
-    uri = bitcoin_uri("bc1q...", amount=Decimal("0.01"), label="Tip")
+    addr = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+    uri = bitcoin_uri(addr, amount=Decimal("0.01"), label="Tip")
     show(optimize_uri(uri))
     ```
     """
@@ -268,7 +269,7 @@ def lightning_uri(payload: str) -> str:
     ```python
     from cuere import lightning_uri, optimize_uri, show
 
-    show(optimize_uri(lightning_uri("lnbc1...")))
+    show(optimize_uri(lightning_uri("lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqf")))
     ```
     """
     if not _LIGHTNING_PAYLOAD.fullmatch(payload):

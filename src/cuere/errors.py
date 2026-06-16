@@ -138,9 +138,9 @@ class MissingDependencyError(CuereError):
     from cuere import MissingDependencyError, render_bytes
 
     try:
-        render_bytes("HI", format="png")   # without the cuere[image] extra
+        render_bytes("HI", format="png")   # raises only without the cuere[image] extra
     except MissingDependencyError as exc:
-        print(exc.extra)                   # "image"
+        print(exc.extra)                   # "image" (the missing extra)
     ```
     """
 

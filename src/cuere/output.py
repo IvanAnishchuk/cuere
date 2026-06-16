@@ -32,10 +32,13 @@ class OutputFormat(enum.StrEnum):
     Example:
 
     ```python
-    from cuere import save, OutputFormat
+    import io
 
-    save("HELLO", "out.svg")                          # inferred from the suffix
-    save("HELLO", stream, format=OutputFormat.PNG)    # explicit for a stream
+    from cuere import OutputFormat, save
+
+    stream = io.BytesIO()
+    save("HELLO", "out.svg")  # inferred from the suffix
+    save("HELLO", stream, format=OutputFormat.SVG)  # a stream has no suffix, be explicit
     ```
     """
 

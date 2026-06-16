@@ -382,7 +382,7 @@ def ethereum_uri(
 
     `address` is the recipient, validated structurally as `0x` + 40 hex
     digits with its case preserved (it carries the EIP-55 checksum when
-    mixed-case). `value` is the amount in **wei** (1 ETH = 10**18 wei),
+    mixed-case). `value` is the amount in **wei** (1 ETH = `10**18` wei),
     a non-negative integer `uint256`; `gas_price` is likewise in wei and
     `gas_limit` is a gas-unit count.
     `chain_id` (EIP-155, e.g. `1` for mainnet) is emitted as `@<chain_id>`.

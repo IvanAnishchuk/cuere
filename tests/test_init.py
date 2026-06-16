@@ -36,6 +36,6 @@ def test_api_reference_documents_public_symbols() -> None:
     api_md = Path(__file__).parent.parent / "docs" / "reference" / "api.md"
     if not api_md.exists():
         pytest.skip("docs/reference/api.md not present in this checkout")
-    documented = set(re.findall(r"::: cuere\.\w+\.(\w+)", api_md.read_text(encoding="utf-8")))
+    documented = set(re.findall(r":::\s+cuere\.\w+\.(\w+)", api_md.read_text(encoding="utf-8")))
     undocumented = {name for name in cuere.__all__ if name != "__version__"} - documented
     assert not undocumented, f"missing from docs/reference/api.md: {sorted(undocumented)}"

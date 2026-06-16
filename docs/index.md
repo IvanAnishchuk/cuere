@@ -74,10 +74,3 @@ and [Rich](https://github.com/Textualize/rich).
 - **Wallet URI standards** — the [BIP-21](bip-21.md),
   [Lightning](lightning-uri.md), and [EIP-681](eip-681.md) summaries behind the
   builders.
-
-!!! note "Documentation in progress"
-
-    This site is being built out under the v0.2.0 docs epic — a CLI reference, an
-    API reference, and a quickstart guide are on the way. For now the
-    [README](https://github.com/IvanAnishchuk/cuere#readme) is the most complete
-    overview.

@@ -138,7 +138,7 @@ install's import hook otherwise shadows the mutated tree. See
   -->` markers). Its `ART_PAGES` list and the `trailing-whitespace` `exclude:`
   regex in `.pre-commit-config.yaml` must be kept in sync **by hand**: every art
   page needs that exclusion or its significant quiet-zone trailing spaces get
-  stripped on commit, silently corrupting the code. Today the cookbook is
+  stripped on commit, silently corrupting the QR art. Today the cookbook is
   excluded as a whole directory (so new recipes are covered automatically) and
   `docs/index.md` by name. `--check` (run in CI via `tests/test_docs_qr.py`)
   catches art *drift*, not a *missing* exclusion — so when adding an art page

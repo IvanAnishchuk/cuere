@@ -172,6 +172,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The README's animated demo GIF now uses an absolute, tag-pinned URL so it
+  renders on the PyPI project page (PyPI serves the long description off-repo, so
+  relative image paths 404 there).
 - Embedded half-block QR art now scans from the rendered documentation site.
   The Material/zensical theme styled code blocks with `line-height: 1.4`, which
   injected a horizontal sliver between every glyph row and split the codes
@@ -196,6 +199,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- The release workflow now asserts the built package version matches the
+  release tag before publishing, so a forgotten version bump cannot publish a
+  mislabeled artifact.
+- `SECURITY.md` now documents how to verify a release's sigstore signature and
+  SLSA provenance, not only the GitHub build-provenance attestation.
 - Hardened the release build against cache poisoning (`enable-cache: false`
   on the publish build's `setup-uv`).
 

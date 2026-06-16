@@ -28,7 +28,7 @@ and helpers for crypto-wallet URIs.
 
 ## Demo
 
-![cuere terminal demo](docs/img/demo.gif)
+![cuere terminal demo](https://raw.githubusercontent.com/IvanAnishchuk/cuere/8d90c12f51243fa5e56c0e3955e263243a156119/docs/img/demo.gif)
 
 Recorded with [vhs](https://github.com/charmbracelet/vhs) from
 [`examples/demo.tape`](examples/demo.tape) — regenerate with

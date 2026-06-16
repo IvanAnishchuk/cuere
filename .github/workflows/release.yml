@@ -101,6 +101,25 @@ jobs:
           uv build
           ls -la dist/
 
+      # Guard against a forgotten version bump: a tag vX.Y.Z must build an
+      # X.Y.Z artifact. meson-python writes the meson.build version verbatim
+      # into the wheel metadata, so a plain string compare to the tag catches a
+      # stale meson.build. Runs whenever building from a tag (a push, or a
+      # workflow_dispatch launched against a tag ref); a branch dispatch has no
+      # tag to check.
+      - name: Assert built version matches tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          tag_version="${TAG#v}"
+          built_version=$(unzip -p dist/*.whl '*.dist-info/METADATA' | sed -n 's/^Version: //p' | head -1)
+          echo "tag=${tag_version} built=${built_version}"
+          if [ "${tag_version}" != "${built_version}" ]; then
+            echo "::error::tag version ${tag_version} != built package version ${built_version}; bump meson.build?"
+            exit 1
+          fi
+
       - name: Generate SBOM (CycloneDX)
         run: |
           VERSION="${GITHUB_REF_NAME#v}"

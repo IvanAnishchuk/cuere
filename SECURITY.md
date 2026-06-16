@@ -19,5 +19,28 @@ You should receive an initial response within a week.
   SBOM attached to the GitHub release.
 - Dependencies are locked (`uv.lock`), audited with pip-audit and
   OSV-Scanner, and updated via dependabot.
-- Verify a wheel with:
-  `gh attestation verify dist/cuere-*.whl --repo IvanAnishchuk/cuere`
+
+### Verifying a release
+
+Download the wheel and its companion artifacts from the
+[GitHub release](https://github.com/IvanAnishchuk/cuere/releases), then verify
+any (or all) of the three independent attestations (replace `vX.Y.Z` with the
+release tag):
+
+```sh
+# 1. GitHub build-provenance attestation (PEP 740)
+gh attestation verify cuere-*.whl --repo IvanAnishchuk/cuere
+
+# 2. sigstore keyless signature (uses the bundled *.sigstore.json)
+uv tool run sigstore verify identity \
+    --cert-identity 'https://github.com/IvanAnishchuk/cuere/.github/workflows/release.yml@refs/tags/vX.Y.Z' \
+    --cert-oidc-issuer 'https://token.actions.githubusercontent.com' \
+    --bundle cuere-*.whl.sigstore.json \
+    cuere-*.whl
+
+# 3. SLSA L3 provenance (slsa-verifier)
+slsa-verifier verify-artifact cuere-*.whl \
+    --provenance-path cuere-vX.Y.Z-provenance.intoto.jsonl \
+    --source-uri github.com/IvanAnishchuk/cuere \
+    --source-tag vX.Y.Z
+```

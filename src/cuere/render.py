@@ -292,7 +292,8 @@ def render_svg(matrix: QRMatrix, *, scale: int = DEFAULT_SCALE, invert: bool = F
     from cuere import QRMatrix, render_svg
 
     svg = render_svg(QRMatrix.encode("HELLO"), scale=8)
-    open("hello.svg", "w").write(svg)
+    with open("hello.svg", "w", encoding="utf-8") as f:
+        f.write(svg)
     ```
     """
     check_scale(scale)

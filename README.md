@@ -26,6 +26,21 @@ and helpers for crypto-wallet URIs.
 ▀▀▀▀▀▀▀ ▀  ▀ ▀  ▀ ▀
 ```
 
+## Demo
+
+![cuere terminal demo](docs/img/demo.gif)
+
+Recorded with [vhs](https://github.com/charmbracelet/vhs) from
+[`examples/demo.tape`](examples/demo.tape) — regenerate with
+`uv run python scripts/render_demo.py` (needs `vhs`, `ttyd`, and `ffmpeg`):
+
+```bash
+cuere "https://github.com/IvanAnishchuk/cuere"   # a first code
+cuere --invert "HELLO"                            # light-on-dark
+cuere --optimize-uri "bitcoin:bc1q..."            # smaller wallet code
+cuere --mode ansi "cuere"                         # theme-proof colors
+```
+
 📖 **Full documentation: [ivananishchuk.github.io/cuere](https://ivananishchuk.github.io/cuere/)**
 
 ## Install

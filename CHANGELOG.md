@@ -23,6 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   README gains a documentation badge and a link to the published site at
   <https://ivananishchuk.github.io/cuere/>. Closes #15.
 
+- An animated terminal demo in the README, recorded with
+  [vhs](https://github.com/charmbracelet/vhs) from a checked-in
+  `examples/demo.tape` showing a basic render, `--invert`, a wallet URI with
+  `--optimize-uri`, and `--mode ansi`. A `scripts/render_demo.py` helper
+  re-records it locally (`uv run python scripts/render_demo.py`). Closes #16.
+
 - Terminal color customization for `ansi` mode. `render` / `show` (and
   `cuere.rich.QRCode`, plus the CLI `--dark` / `--light` flags) now take `dark`
   and `light` colors for the dark modules and the light ground. A `Color` is a

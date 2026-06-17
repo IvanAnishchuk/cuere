@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-17
+
 ### Added
 
 - A documentation site built with [zensical](https://zensical.org/) (the new
@@ -251,5 +253,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Release builds publish via PyPI trusted publishing (OIDC) with sigstore
   signatures, SLSA provenance, PEP 740 attestations, and a CycloneDX SBOM.
 
-[Unreleased]: https://github.com/IvanAnishchuk/cuere/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/IvanAnishchuk/cuere/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/IvanAnishchuk/cuere/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/IvanAnishchuk/cuere/releases/tag/v0.1.0

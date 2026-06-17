@@ -4,7 +4,7 @@
 # declares `dynamic = ["version"]` and mesonpy reads it from here.
 project(
     'cuere',
-    version: '0.1.0',
+    version: '0.2.0',
     meson_version: '>= 1.5.0',
     license: 'CC0-1.0',
     license_files: 'LICENSE.md',

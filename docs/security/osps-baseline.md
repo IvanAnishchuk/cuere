@@ -181,9 +181,9 @@ limitations or checks the scanner does not implement, not conformance gaps:
   (standardized `uv`/meson tooling, the API/CLI reference, the threat-model
   self-assessment, and the GitHub Security Advisories publication path).
 
-The earlier after-run also failed **BR-03.02** because the
-`vulnerability-reporting` distribution points listed the `pkg:pypi/cuere`
-Package-URL, which the scanner's check rejects for lacking an `https` scheme;
+The earlier after-run also failed **BR-03.02** because the `release` section's
+distribution points listed the `pkg:pypi/cuere` Package-URL, which the scanner's
+check rejects for lacking an `https` scheme;
 the distribution points now use HTTPS URLs (the PyPI project page and the GitHub
 releases page), which the scanner accepts.
 

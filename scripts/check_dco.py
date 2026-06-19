@@ -67,7 +67,7 @@ def _run_git(*args: str) -> str:
     return subprocess.run(
         ["git", *args],
         capture_output=True,
-        text=True,
+        encoding="utf-8",
         check=True,
     ).stdout
 
@@ -82,7 +82,12 @@ def check_range(base: str, head: str) -> int:
     commits = listing.split()
     failures = 0
     for sha in commits:
-        name, email, body = _run_git("show", "-s", "--format=%an%n%ae%n%B", sha).split("\n", 2)
+        try:
+            name, email, body = _run_git("show", "-s", "--format=%an%n%ae%n%B", sha).split("\n", 2)
+        except (subprocess.CalledProcessError, ValueError) as exc:
+            failures += 1
+            _err(f"check_dco: cannot read commit {sha[:12]}: {exc}")
+            continue
         if email.lower() not in _signoff_emails(body):
             failures += 1
             _err(f"check_dco: {sha[:12]} by {name} <{email}> has no matching sign-off")

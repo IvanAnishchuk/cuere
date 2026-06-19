@@ -65,8 +65,8 @@ payload (str/bytes) ──► matrix.encode ──► QRMatrix (frozen, immutabl
   never `eval`s, imports, or executes it.
 - **The terminal boundary is explicit.** Only the renderers emit characters to a
   terminal. In `half`/`block` modes the output is QR glyphs and spaces. In `ansi`
-  mode the only escape sequences are SGR colour codes **derived from the validated
-  `dark`/`light` colour options** — never from the payload — so a crafted payload
+  mode the only escape sequences are SGR color codes **derived from the validated
+  `dark`/`light` color options** — never from the payload — so a crafted payload
   cannot inject terminal escape sequences. See the
   [threat model](threat-model.md) for the analysis.
 - **No ambient authority.** At runtime cuere opens no network connections and

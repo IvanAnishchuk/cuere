@@ -188,6 +188,7 @@ def test_params_appear_in_fixed_order() -> None:
         (Decimal("1.0"), "1.0"),  # trailing zero preserved, not normalized away
         (Decimal("0.500000000"), "0.500000000"),  # 9 trailing-zero digits is still 0.5 BTC
         ("0.12345678", "0.12345678"),  # eight significant fractional digits is allowed
+        (Decimal("21000000"), "21000000"),  # the 21,000,000 BTC supply cap is inclusive
     ],
 )
 def test_amount_formatting(amount: Decimal | int | str, expected: str) -> None:
@@ -238,11 +239,22 @@ def test_invalid_address_is_rejected(address: str) -> None:
         "0.000000001",  # 9 significant decimals: finer than a satoshi
         True,  # bool is an int subtype but must not be treated as amount=1
         False,  # likewise: a bool is never a valid amount
+        "21000000.00000001",  # one satoshi past the 21,000,000 BTC supply cap
+        "22000000",  # well above the supply cap
     ],
 )
 def test_invalid_amount_is_rejected(amount: Decimal | int | str) -> None:
     with pytest.raises(WalletURIError):
         _ = bitcoin_uri(BECH32_ADDRESS, amount=amount)
+
+
+def test_amount_over_supply_cap_reports_the_cap_reason() -> None:
+    # Pin the cap as a *distinct* rejection: the 21M check must run before the
+    # sub-satoshi check, so an over-cap value reads as "exceeds the supply cap",
+    # not "finer than one satoshi". Without this the cap logic could be reordered
+    # into dead code while the bare raises-WalletURIError tests stayed green.
+    with pytest.raises(WalletURIError, match="supply cap"):
+        _ = bitcoin_uri(BECH32_ADDRESS, amount="22000000")
 
 
 def test_error_is_a_cuere_error_and_carries_the_value() -> None:
@@ -443,6 +455,7 @@ def test_invalid_ethereum_address_is_rejected(address: str) -> None:
         True,  # bool is an int subtype but never a valid amount
         False,
         2**256,  # one past the uint256 ceiling
+        "1E999999999",  # huge-exponent integral Decimal: way past the ceiling (#99)
     ],
 )
 def test_invalid_ethereum_value_is_rejected(value: int | Decimal | str) -> None:
@@ -454,6 +467,33 @@ def test_invalid_ethereum_value_is_rejected(value: int | Decimal | str) -> None:
 def test_invalid_chain_id_is_rejected(chain_id: int) -> None:
     with pytest.raises(WalletURIError):
         _ = ethereum_uri(ETH_ADDRESS, chain_id=chain_id)
+
+
+def test_huge_exponent_inputs_are_rejected_cheaply_not_oom() -> None:
+    # Regression for #99 (found by the Atheris fuzzing pilot): a Decimal with a
+    # huge exponent must be rejected with WalletURIError *before* any
+    # magnitude-dependent work runs. The builders used to call format(value, "f")
+    # / int(value) first, expanding a ~10**9-digit string/int — an uncaught
+    # MemoryError (and a multi-second hang) on the public API, i.e. a DoS. Each
+    # call below must return in well under a second; if any reintroduces the
+    # eager expansion this test hangs or OOMs rather than passing.
+    for amount in ("1E999999999", "1E-999999999", Decimal("1E999999999")):
+        with pytest.raises(WalletURIError):
+            _ = bitcoin_uri(BECH32_ADDRESS, amount=amount)
+    # The uint256 coercer feeds every str/Decimal-accepting EVM field — value,
+    # gas_price, and the ERC-20 transfer amount. (chain_id / gas_limit are typed
+    # int-only, so the huge-exponent vector is not reachable through them.)
+    # A huge *negative* integral exponent takes a different cheap branch
+    # (number < 0, ahead of int(number)), so cover both signs: a regression
+    # that moved int() back ahead of the range checks would reintroduce the OOM
+    # on "-1E999999999" alone.
+    for big in ("1E999999999", Decimal("1E999999999"), "-1E999999999"):
+        with pytest.raises(WalletURIError):
+            _ = ethereum_uri(ETH_ADDRESS, value=big)
+        with pytest.raises(WalletURIError):
+            _ = ethereum_uri(ETH_ADDRESS, value=1, gas_price=big)
+        with pytest.raises(WalletURIError):
+            _ = erc20_transfer_uri(CONTRACT_ADDRESS, to=RECIPIENT_ADDRESS, amount=big)
 
 
 def test_erc20_transfer_canonical_example() -> None:

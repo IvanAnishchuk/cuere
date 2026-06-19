@@ -46,6 +46,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `HYPOTHESIS_PROFILE` and the Test workflow runs `uv run pytest` (the `dev`
   profile). The real wide/nightly profile is tracked in #97.
 
+### Fixed
+
+- **Wallet builders no longer choke on a huge-exponent amount/value (DoS).**
+  A `Decimal`/`str` with a giant exponent (e.g. `"1E999999999"`) passed as a
+  `bitcoin_uri` `amount` or an EVM `value` / `gas_price` / ERC-20 `amount` used
+  to reach `format(value, "f")` / `int(value)` and expand to a ~10⁹-digit
+  string or integer — an uncaught `MemoryError` and multi-second hang on the
+  public API. Magnitude is now bounded on the `Decimal` (exponent-cheap) before
+  any expansion, so these raise `WalletURIError` immediately, like every other
+  bad input. As part of this, a `bitcoin_uri` `amount` above the 21,000,000 BTC
+  supply cap is now rejected (it produced a nonsensical URI before). Found by
+  the Atheris fuzzing pilot. Closes #99.
+
 ## [0.2.0] - 2026-06-17
 
 ### Added

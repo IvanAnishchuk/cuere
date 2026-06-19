@@ -83,6 +83,16 @@ dev = [
     # and the PNG tests can run; end users opt in via the `cuere[image]` extra.
     "pillow>=11.0",
 ]
+# Coverage-guided fuzzing of the existing Hypothesis property tests (issue #37).
+# Kept OUT of `dev` on purpose: hypofuzz pulls a heavier transitive set (its
+# dashboard stack — starlette/hypercorn/trio — plus black/libcst/watchdog), and
+# every CI job runs `uv sync --frozen --dev`. A dedicated group means the six
+# --dev jobs stay lean; fuzzing (local or scheduled) opts in with
+# `uv sync --group fuzz` / `uv run --group fuzz hypothesis fuzz`. Not a CI gate.
+# See docs/fuzzing.md.
+fuzz = [
+    "hypofuzz>=25.11.1",
+]
 
 [build-system]
 requires = ["meson-python>=0.19.0"]

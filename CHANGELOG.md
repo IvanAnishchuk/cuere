@@ -24,6 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`scripts/check_dco.py`, stdlib-only) verify it on every pull request, and
   "DCO sign-off" is declared as a required status check in `.github/settings.yml`
   (making it a blocking branch-protection context is tracked in #89).
+- **Coverage-guided fuzzing of the Hypothesis property tests (HypoFuzz).** A
+  dedicated `fuzz` dependency group — kept out of `dev` so the CI `uv sync --dev`
+  jobs stay lean — lets contributors run [HypoFuzz](https://hypofuzz.com/) over
+  the existing property tests with `uv run --group fuzz hypothesis fuzz`. It is a
+  local/scheduled search, never a blocking CI gate, and complements (does not
+  replace) the wide-Hypothesis budget work in #21. A new `docs/fuzzing.md` guide
+  documents the workflow; an initial bounded run surfaced no falsifying examples.
+  Closes #37.
 
 ## [0.2.0] - 2026-06-17
 

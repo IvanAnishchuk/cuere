@@ -47,6 +47,13 @@ Because the hooks run via `uv run`, local results match CI.
 `uv run mutmut run` checks test *quality* beyond coverage. It is **local-only**
 (not a CI gate); kill meaningful survivors with new tests.
 
+### Fuzzing (local)
+
+`uv run --group fuzz hypothesis fuzz` runs the existing Hypothesis property tests
+as a coverage-guided fuzzer ([HypoFuzz](https://hypofuzz.com/)). It is
+**local/scheduled-only** (not a CI gate); triage any falsifying example it finds
+and pin it with `@example(...)`. See [docs/fuzzing.md](docs/fuzzing.md).
+
 ## Signed commits are required
 
 Commits merged to `main` **must be cryptographically signed** (branch

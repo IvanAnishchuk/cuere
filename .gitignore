@@ -24,3 +24,10 @@ dist/
 # Mutation testing (mutmut sandbox copy + stats; run locally only)
 mutants/
 .mutmut-cache
+
+# Atheris / libFuzzer crash reproducers + artifacts (dev-only fuzzing, #96)
+crash-*
+leak-*
+timeout-*
+oom-*
+slow-unit-*

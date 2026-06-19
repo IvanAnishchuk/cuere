@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Security policy-enforcement decision record**
+  (`docs/security/policy-enforcement.md`, in the docs **Security** nav section):
+  documents cuere's three-layer enforcement model (Scorecard assess /
+  `.github/settings.yml` enforce / required-checks gate) and records the
+  evaluation of OpenSSF Allstar, which was **not adopted** — it targets GitHub
+  organizations, whereas cuere is a personal-account repository whose only
+  applicable policy (branch protection) is already enforced declaratively by
+  settings-as-code. Closes #40.
 - **OpenSSF OSPS Baseline Level 2 conformance.** A machine-readable
   `security-insights.yml` (OpenSSF Security Insights v2.2.0) at the repository
   root, a control-by-control conformance record

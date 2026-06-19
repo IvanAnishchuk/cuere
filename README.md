@@ -5,6 +5,7 @@
 [![lint](https://github.com/IvanAnishchuk/cuere/actions/workflows/lint.yml/badge.svg)](https://github.com/IvanAnishchuk/cuere/actions/workflows/lint.yml)
 [![typecheck](https://github.com/IvanAnishchuk/cuere/actions/workflows/typecheck.yml/badge.svg)](https://github.com/IvanAnishchuk/cuere/actions/workflows/typecheck.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IvanAnishchuk/cuere/badge)](https://scorecard.dev/viewer/?uri=github.com/IvanAnishchuk/cuere)
+[![OpenSSF OSPS Baseline](https://img.shields.io/badge/OSPS_Baseline-Level_2-3b8?logo=openssf&logoColor=white)](https://ivananishchuk.github.io/cuere/security/osps-baseline/)
 [![Documentation](https://img.shields.io/badge/docs-cuere-3b8?logo=materialformkdocs)](https://ivananishchuk.github.io/cuere/)
 
 QR codes in your terminal — the way Claude Code CLI draws its remote-connection

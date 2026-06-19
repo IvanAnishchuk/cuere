@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **OpenSSF OSPS Baseline Level 2 conformance.** A machine-readable
+  `security-insights.yml` (OpenSSF Security Insights v2.2.0) at the repository
+  root, a control-by-control conformance record
+  (`docs/security/osps-baseline.md`), and the supporting `GOVERNANCE.md`,
+  security architecture/threat-model/dependency docs (`docs/security/`), and a
+  build-from-source guide (`docs/building.md`), all wired into the docs site
+  under a new **Security** nav section and surfaced from the README and
+  `SECURITY.md`. Conformance is assessed automatically by the Privateer
+  GitHub-repo scanner against the 2026-02 catalog. Closes #39; Level 3 gaps are
+  tracked in #84 and #85.
+- **DCO sign-off enforcement.** Every commit must carry a `Signed-off-by:`
+  trailer (OSPS-LE-01.01): a `commit-msg` pre-commit hook and a `DCO` CI check
+  (`scripts/check_dco.py`, stdlib-only) verify it, and "DCO sign-off" is now a
+  required status check on `main`.
+
 ## [0.2.0] - 2026-06-17
 
 ### Added

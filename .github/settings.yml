@@ -64,6 +64,7 @@ branches:
           - "Secret scan"
           - "Review dependency changes"
           - "GitHub Actions security audit"
+          - "DCO sign-off"
       enforce_admins: false  # solo maintainer keeps admin bypass (not locked out)
       required_linear_history: false  # merge commits are used for PRs
       allow_force_pushes: false

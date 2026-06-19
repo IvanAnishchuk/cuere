@@ -4,6 +4,14 @@
 
 Only the latest release receives security fixes.
 
+## OSPS Baseline conformance
+
+cuere conforms to **Level 2** of the
+[OpenSSF OSPS Baseline](https://baseline.openssf.org/). The machine-readable
+declaration is [`security-insights.yml`](https://github.com/IvanAnishchuk/cuere/blob/main/security-insights.yml)
+(OpenSSF Security Insights v2.2.0) at the repository root; the control-by-control
+record is in [docs/security/osps-baseline.md](https://ivananishchuk.github.io/cuere/security/osps-baseline/).
+
 ## Reporting a Vulnerability
 
 Please report vulnerabilities privately via

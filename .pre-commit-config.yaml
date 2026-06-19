@@ -141,6 +141,17 @@ repos:
           - revert
           - style
 
+  # ── DCO sign-off (commit-msg) ────────────────────────────────
+  - repo: local
+    hooks:
+      - id: dco-sign-off
+        name: DCO sign-off (commit message)
+        # pre-commit appends the commit-message file path at the commit-msg stage.
+        entry: python3 scripts/check_dco.py message
+        language: system
+        stages: [commit-msg]
+        require_serial: true
+
   # ── Pre-push: test + audit ───────────────────────────────────
   - repo: local
     hooks:

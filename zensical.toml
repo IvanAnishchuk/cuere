@@ -37,7 +37,14 @@ nav = [
         { "Lightning (BOLT11/LNURL/BOLT12)" = "lightning-uri.md" },
         { "EIP-681 (Ethereum)" = "eip-681.md" },
     ] },
+    { "Security" = [
+        { "OSPS Baseline" = "security/osps-baseline.md" },
+        { "Architecture & design" = "security/design.md" },
+        { "Threat model" = "security/threat-model.md" },
+        { "Dependency management" = "security/dependencies.md" },
+    ] },
     { "Contributing" = [
+        { "Building from source" = "building.md" },
         { "Mutation testing" = "mutation-testing.md" },
     ] },
 ]

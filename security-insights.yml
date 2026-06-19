@@ -1,0 +1,123 @@
+# OpenSSF Security Insights for cuere — https://security-insights.openssf.org/
+#
+# Declares cuere's security posture in the machine-readable Security Insights
+# v2 format. It powers automated OpenSSF OSPS Baseline conformance assessment
+# (https://baseline.openssf.org/) via the Privateer GitHub-repo scanner and LFX
+# Insights, and is the source of truth behind docs/security/osps-baseline.md.
+#
+# Canonical lowercase filename per the Security Insights spec; the scanner reads
+# it from the repository root (preferred) or .github/.
+header:
+  schema-version: 2.2.0
+  last-updated: '2026-06-19'
+  last-reviewed: '2026-06-19'
+  url: https://github.com/IvanAnishchuk/cuere/blob/main/security-insights.yml
+  comment: |
+    Single-repository Security Insights file: the project and repository
+    sections both describe the one cuere repository.
+
+project:
+  name: cuere
+  homepage: https://ivananishchuk.github.io/cuere/
+  roadmap: https://github.com/users/IvanAnishchuk/projects/4
+  administrators:
+    - name: Ivan Anishchuk
+      affiliation: Independent
+      email: ivan@agorism.org
+      social: https://github.com/IvanAnishchuk
+      primary: true
+  documentation:
+    quickstart-guide: https://ivananishchuk.github.io/cuere/quickstart/
+    detailed-guide: https://ivananishchuk.github.io/cuere/
+    code-of-conduct: https://github.com/IvanAnishchuk/cuere/blob/main/CODE_OF_CONDUCT.md
+    release-process: https://github.com/IvanAnishchuk/cuere/blob/main/SECURITY.md#supply-chain
+    signature-verification: https://github.com/IvanAnishchuk/cuere/blob/main/SECURITY.md#verifying-a-release
+  repositories:
+    - name: cuere
+      url: https://github.com/IvanAnishchuk/cuere
+      comment: |
+        The single repository that makes up the cuere project.
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+    contact:
+      name: Ivan Anishchuk
+      email: ivan@agorism.org
+      primary: true
+    policy: https://github.com/IvanAnishchuk/cuere/blob/main/SECURITY.md
+    in-scope:
+      - The cuere library and its published wheels/sdists on PyPI.
+      - The release build and supply-chain pipeline.
+    out-of-scope:
+      - Vulnerabilities in third-party dependencies (report upstream; cuere
+        tracks them via OSV-Scanner, pip-audit, and dependabot).
+    comment: |
+      Report privately via GitHub Security Advisories
+      (https://github.com/IvanAnishchuk/cuere/security/advisories/new) or email.
+      See also .well-known/security.txt (RFC 9116). Initial response target:
+      within one week.
+
+repository:
+  url: https://github.com/IvanAnishchuk/cuere
+  status: active
+  bug-fixes-only: false
+  accepts-change-request: true
+  accepts-automated-change-request: true
+  no-third-party-packages: false
+  core-team:
+    - name: Ivan Anishchuk
+      affiliation: Independent
+      email: ivan@agorism.org
+      social: https://github.com/IvanAnishchuk
+      primary: true
+  documentation:
+    contributing-guide: https://github.com/IvanAnishchuk/cuere/blob/main/CONTRIBUTING.md
+    review-policy: https://github.com/IvanAnishchuk/cuere/blob/main/CONTRIBUTING.md#pull-request-checklist
+    security-policy: https://github.com/IvanAnishchuk/cuere/blob/main/SECURITY.md
+    governance: https://github.com/IvanAnishchuk/cuere/blob/main/GOVERNANCE.md
+    dependency-management-policy: https://ivananishchuk.github.io/cuere/security/dependencies/
+  license:
+    url: https://github.com/IvanAnishchuk/cuere/blob/main/LICENSE.md
+    expression: CC0-1.0
+  release:
+    changelog: https://github.com/IvanAnishchuk/cuere/blob/main/CHANGELOG.md
+    automated-pipeline: true
+    attestations:
+      - name: SLSA build provenance
+        predicate-uri: https://slsa.dev/provenance/v1
+        location: https://github.com/IvanAnishchuk/cuere/releases
+        comment: |
+          SLSA build provenance generated in CI for each release artifact;
+          verifiable with slsa-verifier (see SECURITY.md#verifying-a-release).
+      - name: PyPI / PEP 740 attestation
+        predicate-uri: https://docs.pypi.org/attestations/
+        location: https://pypi.org/project/cuere/
+        comment: |
+          PyPI trusted publishing (OIDC) with PEP 740 attestations and a
+          keyless sigstore signature for each wheel and sdist.
+      - name: CycloneDX SBOM
+        predicate-uri: https://cyclonedx.org/specification/overview/
+        location: https://github.com/IvanAnishchuk/cuere/releases
+        comment: |
+          CycloneDX SBOM attached to each GitHub release.
+    distribution-points:
+      - uri: pkg:pypi/cuere
+        comment: PyPI package, published via trusted publishing (OIDC).
+      - uri: https://github.com/IvanAnishchuk/cuere/releases
+        comment: GitHub release page with signed artifacts and attestations.
+    license:
+      url: https://github.com/IvanAnishchuk/cuere/blob/main/LICENSE.md
+      expression: CC0-1.0
+  security:
+    assessments:
+      self:
+        evidence: https://ivananishchuk.github.io/cuere/security/threat-model/
+        date: '2026-06-19'
+        comment: |
+          Maintainer self-assessment and lightweight threat model: actors,
+          trust boundaries, and the most likely and impactful risks for a
+          stdlib-only terminal QR library. See docs/security/threat-model.md.
+    champions:
+      - name: Ivan Anishchuk
+        email: ivan@agorism.org
+        primary: true

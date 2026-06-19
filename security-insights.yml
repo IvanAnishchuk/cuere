@@ -105,8 +105,10 @@ repository:
         comment: |
           CycloneDX SBOM attached to each GitHub release.
     distribution-points:
-      - uri: pkg:pypi/cuere
-        comment: PyPI package, published via trusted publishing (OIDC).
+      # HTTPS URLs (not the pkg:pypi/cuere PURL): the Privateer scanner's
+      # BR-03.02 check requires an https scheme and flags a bare PURL.
+      - uri: https://pypi.org/project/cuere/
+        comment: PyPI project page; published via trusted publishing (OIDC).
       - uri: https://github.com/IvanAnishchuk/cuere/releases
         comment: GitHub release page with signed artifacts and attestations.
     license:

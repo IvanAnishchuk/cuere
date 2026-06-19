@@ -45,13 +45,17 @@ project:
       email: ivan@agorism.org
       primary: true
     policy: https://github.com/IvanAnishchuk/cuere/blob/main/SECURITY.md
-    in-scope:
-      - The cuere library and its published wheels/sdists on PyPI.
-      - The release build and supply-chain pipeline.
-    out-of-scope:
-      - Vulnerabilities in third-party dependencies (report upstream; cuere
-        tracks them via OSV-Scanner, pip-audit, and dependabot).
+    # Scope is described in `comment` below rather than the typed in-scope /
+    # out-of-scope fields: ossf/si-tooling v2.2.0 (the parser the Privateer
+    # scanner and LFX Insights use) generates those as scalar strings, so YAML
+    # lists there fail strict unmarshalling and void the whole file. Don't
+    # reintroduce them as lists.
     comment: |
+      In scope: the cuere library and its published wheels/sdists on PyPI, and
+      the release build and supply-chain pipeline. Out of scope: vulnerabilities
+      in third-party dependencies — report those upstream; cuere tracks them via
+      OSV-Scanner, pip-audit, and dependabot.
+
       Report privately via GitHub Security Advisories
       (https://github.com/IvanAnishchuk/cuere/security/advisories/new) or email.
       See also .well-known/security.txt (RFC 9116). Initial response target:

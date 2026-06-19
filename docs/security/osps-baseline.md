@@ -61,7 +61,7 @@ meets it. (Level 3 requirements are out of scope for this claim — see
 | BR-01.02 | 1 | Sanitize/validate branch names in CI | Same env-var discipline; no unsanitized `github.head_ref` in shell steps. |
 | BR-02.01 | 2 | Unique version identifier per release | Releases are tagged `vX.Y.Z` (SemVer); the release workflow asserts the built version matches the tag. |
 | BR-03.01 | 1 | Official channels delivered over HTTPS | All project URIs in `security-insights.yml` and the docs are HTTPS. |
-| BR-03.02 | 1 | Distribution channels over HTTPS | Distribution points are `pkg:pypi/cuere` and the HTTPS GitHub releases page. |
+| BR-03.02 | 1 | Distribution channels over HTTPS | Distribution points are the HTTPS PyPI project page (`https://pypi.org/project/cuere/`) and the GitHub releases page — both HTTPS. |
 | BR-04.01 | 2 | Releases carry a change log | [`CHANGELOG.md`](https://github.com/IvanAnishchuk/cuere/blob/main/CHANGELOG.md) (Keep a Changelog) plus per-release notes. |
 | BR-05.01 | 2 | Standardized build/dependency tooling | Builds use **uv** + **meson-python** (PEP 517/660); dependencies resolve from the committed `uv.lock`. |
 | BR-06.01 | 2 | Releases signed / signed manifest with hashes | Each release ships **sigstore** signatures, **SLSA** provenance, **PEP 740** attestations, and a **CycloneDX SBOM** — see [verifying a release](https://github.com/IvanAnishchuk/cuere/blob/main/SECURITY.md#verifying-a-release). |
@@ -111,7 +111,7 @@ meets it. (Level 3 requirements are out of scope for this claim — see
 | QA-01.01 | 1 | Public repo at a static URL | [github.com/IvanAnishchuk/cuere](https://github.com/IvanAnishchuk/cuere) is public. |
 | QA-01.02 | 1 | Public record of all changes (who/when) | Full git history; `main` requires signed commits. |
 | QA-02.01 | 1 | Dependency list for direct dependencies | `pyproject.toml` declares the runtime/optional/dev dependencies; `uv.lock` pins the full set. |
-| QA-03.01 | 2 | Automated status checks must pass (or be bypassed) before merge | `main`'s required checks (tests, lint, three type checkers, coverage, CodeQL, OSV, gitleaks, zizmor, DCO) must all pass before merge. See the [scanner note](#scanner-results) on the informational Benchmark job. |
+| QA-03.01 | 2 | Automated status checks must pass (or be bypassed) before merge | `main`'s required checks (tests, lint, three type checkers, CodeQL, dependency audit, OSV scan, secret scan, dependency-review, Actions audit) must all pass before merge; the DCO check runs on every PR. See the [scanner note](#scanner-results) on the informational Benchmark job. |
 | QA-04.01 | 1 | List any subprojects | cuere has no subprojects; `security-insights.yml` lists the single repository. |
 | QA-05.01 | 1 | No generated executable artifacts in VCS | The tree contains source only; `tests/test_packaging.py` guards the shipped file list. |
 | QA-05.02 | 1 | No unreviewable binary artifacts in VCS | None present (the one binary, the README demo GIF, is a reviewable, regenerable asset). |
@@ -150,24 +150,42 @@ information the Security Insights file now supplies (dependency policy, core
 team/roles, vulnerability-reporting/CVD, security contacts, SLSA attestations,
 user-guide and design-doc pointers, repository list).
 
-The scanner only assesses a repository's **default branch**, so the post-`main`
-re-scan that reflects this work can only run after merge; this page will be the
-record of that result.
+**After-run (current `main`)** — **34 passed, 2 needs-review, 2 failed,
+4 not-evaluated**. The scanner only assesses a repository's **default branch**,
+so this reflects the merged work. The remaining non-passes are scanner
+limitations or checks the scanner does not implement, not conformance gaps:
 
-Two findings are scanner limitations, not gaps — both controls are met:
-
-- **QA-03.01** — the scanner flags that not *every* executed status check is
-  marked *required*, naming the **Benchmark** job. That job is **informational by
-  design** (it records timings; there is no regression threshold yet) and is
-  deliberately non-blocking. cuere's genuine quality gates — tests, lint, three
-  type checkers, coverage, CodeQL, OSV, gitleaks, zizmor, and DCO — *are* all
-  required checks on `main`, which is what the control requires.
-- **AC-04.01** — the scanner reported it could not read the repository's Actions
-  configuration ("GitHub Actions is disabled … manual review required"). Actions
-  is enabled and least-privilege permissions are enforced: every workflow
-  declares a top-level `permissions: {}` and grants only the minimum each job
-  needs, verifiable in [`.github/workflows/`](https://github.com/IvanAnishchuk/cuere/tree/main/.github/workflows)
+- **QA-03.01** *(failed — over-report)* — the scanner flags that not *every*
+  executed status check is marked *required* (it names the **Benchmark**,
+  **Build documentation**, and **Deploy to GitHub Pages** jobs, among others).
+  Those are informational or deployment jobs that are non-blocking by design.
+  cuere's genuine quality gates — tests, lint, the three type checkers, CodeQL,
+  dependency audit, OSV scan, secret scan, dependency-review, and the Actions
+  audit — *are* required status checks on `main`. The **DCO** check runs on every
+  pull request but is not yet a *required* branch-protection context; closing
+  that gap is tracked in
+  [#89](https://github.com/IvanAnishchuk/cuere/issues/89).
+- **AC-04.01** *(needs review — over-report)* — the scanner reported it could not
+  read the repository's Actions configuration ("GitHub Actions is disabled …
+  manual review required"). Actions is enabled and least-privilege permissions
+  are enforced: every workflow declares a top-level `permissions: {}` and grants
+  only the minimum each job needs, verifiable in
+  [`.github/workflows/`](https://github.com/IvanAnishchuk/cuere/tree/main/.github/workflows)
   and audited by zizmor.
+- **SA-01.01** *(needs review)* — the scanner looks for a design document in the
+  repository root and asks for manual review when it only finds a `docs/`
+  directory. The design documentation is [`docs/security/design.md`](design.md),
+  referenced from `security-insights.yml`.
+- **BR-05.01, SA-02.01, SA-03.01, VM-04.01** *(not evaluated)* — checks the
+  scanner does not implement; met by the artifacts mapped in the table above
+  (standardized `uv`/meson tooling, the API/CLI reference, the threat-model
+  self-assessment, and the GitHub Security Advisories publication path).
+
+The earlier after-run also failed **BR-03.02** because the `release` section's
+distribution points listed the `pkg:pypi/cuere` Package-URL, which the scanner's
+check rejects for lacking an `https` scheme;
+the distribution points now use HTTPS URLs (the PyPI project page and the GitHub
+releases page), which the scanner accepts.
 
 ## Maintaining conformance
 

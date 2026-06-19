@@ -21,8 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tracked in #84 and #85.
 - **DCO sign-off enforcement.** Every commit must carry a `Signed-off-by:`
   trailer (OSPS-LE-01.01): a `commit-msg` pre-commit hook and a `DCO` CI check
-  (`scripts/check_dco.py`, stdlib-only) verify it, and "DCO sign-off" is now a
-  required status check on `main`.
+  (`scripts/check_dco.py`, stdlib-only) verify it on every pull request, and
+  "DCO sign-off" is declared as a required status check in `.github/settings.yml`
+  (making it a blocking branch-protection context is tracked in #89).
 
 ## [0.2.0] - 2026-06-17
 

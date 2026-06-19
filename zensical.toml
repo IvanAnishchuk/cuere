@@ -42,6 +42,7 @@ nav = [
         { "Architecture & design" = "security/design.md" },
         { "Threat model" = "security/threat-model.md" },
         { "Dependency management" = "security/dependencies.md" },
+        { "Policy enforcement" = "security/policy-enforcement.md" },
     ] },
     { "Contributing" = [
         { "Building from source" = "building.md" },

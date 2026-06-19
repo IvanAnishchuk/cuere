@@ -376,6 +376,9 @@ def _chain_and_gas(
     `@<chain_id>` that sits between the address and the path/query, and the
     gas parameters are appended (in EIP-681 order) to the query.
     """
+    # TODO(#102): chain_id/gas_limit are typed int-only while _coerce_uint256
+    # (and the value/gas_price hints) also accept Decimal|str — widen these two
+    # for API consistency. Runtime coercion already handles every form here.
     suffix = f"@{_coerce_uint256(chain_id, 'chain_id')}" if chain_id is not None else ""
     params: list[str] = []
     if gas_limit is not None:

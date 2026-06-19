@@ -76,6 +76,11 @@ _BITCOIN_ADDRESS = re.compile(r"[0-9A-Za-z]+")
 # Bitcoin has 8 decimal places (1 satoshi = 1e-8 BTC); a finer amount is not
 # representable on-chain, so reject it rather than emit a URI no wallet can honor.
 _SATOSHI_DECIMALS = 8
+_SATOSHI = Decimal(1).scaleb(-_SATOSHI_DECIMALS)  # 1E-8 BTC, the quantization unit
+# 21,000,000 BTC is the protocol's total-supply cap — a principled upper bound,
+# and a cheap Decimal guard against a huge-exponent amount whose decimal
+# expansion would blow up format() (MemoryError / DoS — see issue #99).
+_MAX_BTC = Decimal(21_000_000)
 
 # Rejection reasons for WalletURIError. Named constants (not raise-site string
 # literals) keep message text out of the call site — ruff TRY003 flags literals.
@@ -84,6 +89,7 @@ _ERR_AMOUNT_BOOL = "amount must be a number, not a bool"
 _ERR_AMOUNT_NAN = "amount is not a number"
 _ERR_AMOUNT_NOT_FINITE = "amount must be a finite number"
 _ERR_AMOUNT_NOT_POSITIVE = "amount must be positive"
+_ERR_AMOUNT_TOO_LARGE = "amount exceeds the 21,000,000 BTC supply cap"
 _ERR_AMOUNT_SUB_SATOSHI = "amount is finer than one satoshi"
 
 
@@ -166,9 +172,9 @@ def _format_amount(amount: Decimal | int | str) -> str:
 
     Accepts `Decimal`, `int`, or `str` (never `float` —
     binary floats can't represent decimal money exactly; and `bool` is rejected
-    even though it is an `int`). The value must be a finite, positive number
-    with at most satoshi (8-decimal) precision; anything else raises
-    `WalletURIError`.
+    even though it is an `int`). The value must be a finite, positive number,
+    no greater than the 21,000,000 BTC supply cap, with at most satoshi
+    (8-decimal) precision; anything else raises `WalletURIError`.
     """
     if isinstance(amount, bool):  # bool is an int subtype; True would become "1"
         raise WalletURIError(_ERR_AMOUNT_BOOL, amount)
@@ -180,13 +186,19 @@ def _format_amount(amount: Decimal | int | str) -> str:
         raise WalletURIError(_ERR_AMOUNT_NOT_FINITE, amount)
     if value <= 0:
         raise WalletURIError(_ERR_AMOUNT_NOT_POSITIVE, amount)
-    # format(_, "f") avoids scientific notation (Decimal("1E-7") -> "0.0000001").
-    # Strip trailing zeros before counting fractional digits: they carry no
-    # precision, so "0.500000000" (= 0.5 BTC) must not read as sub-satoshi.
-    text = format(value, "f")
-    if len(text.partition(".")[2].rstrip("0")) > _SATOSHI_DECIMALS:
+    # Bound magnitude and precision on the Decimal *before* rendering it: both
+    # checks below are exponent-cheap, but format(value, "f") on a huge-exponent
+    # value expands to a ~10**9-digit string (MemoryError / DoS — issue #99).
+    if value > _MAX_BTC:
+        raise WalletURIError(_ERR_AMOUNT_TOO_LARGE, amount)
+    # At most satoshi precision: the value must be unchanged by quantizing to
+    # 1E-8. Comparing Decimals ignores trailing zeros, so "0.500000000"
+    # (= 0.5 BTC) is fine, while "1E-999999999" is rejected here unexpanded.
+    if value != value.quantize(_SATOSHI):
         raise WalletURIError(_ERR_AMOUNT_SUB_SATOSHI, amount)
-    return text
+    # Safe now: value is in (0, 21_000_000] at satoshi precision, so format(_,
+    # "f") yields a short, scientific-notation-free string ("1E-7" -> "0.0000001").
+    return format(value, "f")
 
 
 def bitcoin_uri(
@@ -331,12 +343,14 @@ def _coerce_uint256(value: int | Decimal | str, field: str) -> int:
         raise WalletURIError(_reason(field, _ERR_UINT_NOT_INTEGER), value) from exc
     if not number.is_finite() or number != number.to_integral_value():
         raise WalletURIError(_reason(field, _ERR_UINT_NOT_INTEGER), value)
-    integer = int(number)
-    if integer < 0:
+    # Range-check the Decimal *before* int(number): the comparisons are
+    # exponent-cheap, but int() on a huge-exponent integral Decimal materializes
+    # a ~10**9-digit int (MemoryError / multi-second hang — DoS, issue #99).
+    if number < 0:
         raise WalletURIError(_reason(field, _ERR_UINT_NEGATIVE), value)
-    if integer > _MAX_UINT256:
+    if number > _MAX_UINT256:
         raise WalletURIError(_reason(field, _ERR_UINT_TOO_LARGE), value)
-    return integer
+    return int(number)
 
 
 def _eth_address(address: str, field: str) -> str:
@@ -362,6 +376,9 @@ def _chain_and_gas(
     `@<chain_id>` that sits between the address and the path/query, and the
     gas parameters are appended (in EIP-681 order) to the query.
     """
+    # TODO(#102): chain_id/gas_limit are typed int-only while _coerce_uint256
+    # (and the value/gas_price hints) also accept Decimal|str — widen these two
+    # for API consistency. Runtime coercion already handles every form here.
     suffix = f"@{_coerce_uint256(chain_id, 'chain_id')}" if chain_id is not None else ""
     params: list[str] = []
     if gas_limit is not None:

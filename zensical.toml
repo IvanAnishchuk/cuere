@@ -47,6 +47,7 @@ nav = [
     { "Contributing" = [
         { "Building from source" = "building.md" },
         { "Mutation testing" = "mutation-testing.md" },
+        { "Fuzzing & deep property testing" = "fuzzing.md" },
     ] },
 ]
 

@@ -7,8 +7,11 @@ from collections.abc import Callable
 import pytest
 from hypothesis import Phase, settings
 
-settings.register_profile("ci", max_examples=200)
 settings.register_profile("dev", max_examples=50)
+# TODO(#97): add a wide/nightly profile for deep property runs (see
+# docs/fuzzing.md). A `ci` profile (200 examples) was registered here but never
+# selected — nothing set HYPOTHESIS_PROFILE and the Test workflow just runs
+# `uv run pytest`, so it always loaded `dev`. Removed until it is actually wired.
 # Under mutmut (it sets MUTANT_UNDER_TEST), a failing example already means the
 # mutant is caught, so skip the shrink phase: shrinking a failure is pure
 # overhead here and can overrun mutmut's per-mutant timeout, turning a clean

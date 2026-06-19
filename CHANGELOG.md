@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Fuzzing decision record** (`docs/fuzzing.md`, in the docs **Contributing**
+  nav section): evaluates OSS-licensed coverage-guided fuzzing for the property
+  tests and records the decision — pilot **Atheris** first (#96), add a wide
+  Hypothesis profile as the low-cost companion (#97), keep proprietary HypoFuzz a
+  personal local aid, and not pursue OSS-Fuzz at the project's current scale.
+  Closes #94.
 - **Security policy-enforcement decision record**
   (`docs/security/policy-enforcement.md`, in the docs **Security** nav section):
   documents cuere's three-layer enforcement model (Scorecard assess /
@@ -32,6 +38,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`scripts/check_dco.py`, stdlib-only) verify it on every pull request, and
   "DCO sign-off" is declared as a required status check in `.github/settings.yml`
   (making it a blocking branch-protection context is tracked in #89).
+
+### Changed
+
+- Removed the dead `ci` Hypothesis profile from `tests/conftest.py` — it was
+  registered (200 examples) but never selected, since nothing sets
+  `HYPOTHESIS_PROFILE` and the Test workflow runs `uv run pytest` (the `dev`
+  profile). The real wide/nightly profile is tracked in #97.
 
 ## [0.2.0] - 2026-06-17
 

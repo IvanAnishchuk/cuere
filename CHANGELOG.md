@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Hypothesis profile as the low-cost companion (#97), keep proprietary HypoFuzz a
   personal local aid, and not pursue OSS-Fuzz at the project's current scale.
   Closes #94.
+- **Atheris coverage-guided fuzzing harness** (dev-only). A `tests/fuzz/`
+  harness for the renderers (`fuzz_render.py`) and the wallet-URI builders /
+  `optimize_uri` (`fuzz_wallet.py`), driven by a pytest smoke test (the
+  `atheris` marker) or run directly for longer sessions. Atheris (Apache-2.0) is
+  declared in an opt-in `fuzz` dependency group, deliberately kept out of the
+  default `uv sync`, the runtime, and the blocking CI path. The pilot is
+  **kept**: it found a wallet huge-exponent `MemoryError` (a DoS the Hypothesis
+  suite misses, tracked in #99); the verdict is recorded in `docs/fuzzing.md`.
+  Closes #96.
 - **Security policy-enforcement decision record**
   (`docs/security/policy-enforcement.md`, in the docs **Security** nav section):
   documents cuere's three-layer enforcement model (Scorecard assess /

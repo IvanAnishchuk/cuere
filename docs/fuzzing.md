@@ -72,7 +72,8 @@ personal local aid only:
    and **record a keep-or-drop verdict here** once measured. Because cuere already
    enforces 100% branch coverage, the upside is bounded to finding *bad values
    within already-covered branches*, so the pilot must demonstrate value beyond
-   the existing Hypothesis suite to earn a permanent place.
+   the existing Hypothesis suite to earn a permanent place — **it did** (see
+   [Pilot outcome](#pilot-outcome) below).
 2. **Add a wide Hypothesis profile** —
    [#97](https://github.com/IvanAnishchuk/cuere/issues/97). The low-cost,
    zero-new-dependency companion: a `nightly`-style profile reusing the existing
@@ -85,10 +86,37 @@ As part of recording this decision, the dead `ci` Hypothesis profile (registered
 at 200 examples but never selected) was removed from `tests/conftest.py`; the real
 wide profile lands with #97.
 
-!!! note "What would change the Atheris verdict"
-    If a pilot surfaces a class of defects the Hypothesis suite misses — for
-    example in input parsing or byte-level handling that benefits from libFuzzer's
-    state exploration — the native-dependency cost becomes worth paying and Atheris
-    graduates from pilot to a standing (non-blocking) job. If it only reconfirms
-    what the property tests already cover, the wide Hypothesis profile is the
-    better long-term home and the pilot is retired.
+## Pilot outcome
+
+The Atheris pilot ([#96](https://github.com/IvanAnishchuk/cuere/issues/96)) is
+**kept**. A minimal harness lives in
+[`tests/fuzz/`](https://github.com/IvanAnishchuk/cuere/tree/main/tests/fuzz) —
+`fuzz_render.py` (renderers) and `fuzz_wallet.py` (wallet-URI builders /
+`optimize_uri`), plus a pytest smoke test. Atheris is declared in a dev-only
+`fuzz` dependency group, kept out of the default `uv sync`, the runtime, and the
+blocking CI path (it is a heavy native, clang/libFuzzer, build).
+
+**Why keep it.** The pilot did exactly what the keep criterion required — it
+surfaced a defect class the Hypothesis suite misses. Within a minute the wallet
+target found [#99](https://github.com/IvanAnishchuk/cuere/issues/99) (since
+fixed): a huge-exponent `amount`/`value` (e.g. `"1E999999999"`) passed the
+finiteness and sign checks, then raised an unhandled `MemoryError` — a denial of
+service — instead of the documented `WalletURIError`, because the
+magnitude-dependent `format()` / `int()` ran *before* the value was bounded.
+That is precisely the
+"bad value within an already-covered branch" that 100% branch coverage cannot
+rule out. The renderer target, by contrast, ran clean (~133k execs, no crash),
+consistent with the renderers being fully exercised by the property tests.
+
+**How it runs** (dev/local-only; see `tests/fuzz/README.md`):
+
+```bash
+uv sync --group fuzz
+uv run --group fuzz pytest tests/fuzz -m atheris --no-cov          # short smoke run
+uv run --group fuzz python tests/fuzz/atheris/fuzz_wallet.py -max_total_time=300
+```
+
+**Operating model.** The harness runs on demand (local) for now; promoting it to
+a non-blocking scheduled job is a reasonable future step, not a pilot
+requirement. HypoFuzz stays local-only (#37); the wide Hypothesis profile (#97)
+remains the cheap, zero-new-dependency companion.

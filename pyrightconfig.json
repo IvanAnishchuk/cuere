@@ -2,5 +2,6 @@
   "venvPath": ".",
   "venv": ".venv",
   "pythonVersion": "3.13",
-  "include": ["src", "tests"]
+  "include": ["src", "tests"],
+  "exclude": ["tests/fuzz"]
 }

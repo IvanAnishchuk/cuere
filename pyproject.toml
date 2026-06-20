@@ -83,6 +83,18 @@ dev = [
     # and the PNG tests can run; end users opt in via the `cuere[image]` extra.
     "pillow>=11.0",
 ]
+# Coverage-guided fuzzing pilot (issue #96, docs/fuzzing.md) — DELIBERATELY NOT
+# in `dev`: Atheris is a heavy native dependency (builds against clang/libFuzzer)
+# and must not bloat the default `uv sync` or the blocking CI path. Opt in with
+# `uv sync --group fuzz`. Apache-2.0, so — unlike the proprietary HypoFuzz (#37,
+# local-only) — it is an allow-listed, declared dependency.
+fuzz = [
+    # Floor is 3.1: 3.1.0 is the first release with Python 3.14 wheels (cuere's
+    # CI tests 3.13 and 3.14) and native 3.11-3.14 support (no version shim).
+    # Atheris ships manylinux x86_64 wheels; on other platforms `uv sync
+    # --group fuzz` builds from source and needs clang/libFuzzer.
+    "atheris>=3.1.0",
+]
 
 [build-system]
 requires = ["meson-python>=0.19.0"]
@@ -133,6 +145,15 @@ select = [
     "S101",    # assert is fine in benchmark sanity checks
     "PLR2004", # payload sizes / scales are expected literals
 ]
+# Atheris fuzz targets (nested, so not covered by the flat "tests/*" globs).
+"tests/fuzz/atheris/*" = [
+    "E402",    # targets import cuere inside the instrument_imports() context, not at module top
+    "S101",    # asserts ARE the fuzz oracle (an invariant breach should crash)
+]
+"tests/fuzz/test_atheris_targets.py" = [
+    "S603",    # subprocess args are a list literal, not user input
+    "S607",    # `timeout` is a well-known coreutils tool, partial path is fine
+]
 
 [tool.ruff.lint.pylint]
 # show()/the CLI command expose many keyword-only rendering options by design
@@ -153,8 +174,16 @@ indent-style = "space"
 [tool.ty.environment]
 python-version = "3.13"
 
+[tool.ty.src]
+# Dev-only Atheris harnesses; see the [tool.mypy] exclude note above.
+exclude = ["tests/fuzz/"]
+
 [tool.mypy]
 python_version = "3.13"
+# tests/fuzz are dev-only Atheris harnesses (import the untyped `atheris`, only
+# present in the `fuzz` group); like benchmarks/ they are ruff-scope only, kept
+# out of the strict type-check pass. ty and basedpyright exclude them too.
+exclude = ['^tests/fuzz/']
 strict = true
 warn_return_any = true
 warn_unused_configs = true
@@ -172,7 +201,17 @@ typeCheckingMode = "recommended"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    # Atheris coverage-guided fuzz smoke tests (tests/fuzz). Excluded from the
+    # default run below; needs the fuzzer installed (`uv sync --group fuzz`).
+    # Select explicitly: `uv run --group fuzz pytest tests/fuzz -m atheris`.
+    "atheris: Atheris coverage-guided fuzz targets (dev-only, opt-in)",
+]
 addopts = [
+    # Keep the fuzz smoke tests out of the default suite: they are slow, need
+    # the `fuzz` group, and contribute no src coverage. `-m atheris` on the CLI
+    # overrides this to select them.
+    "-m", "not atheris",
     "--strict-markers",
     "--strict-config",
     "--cov=cuere",
@@ -225,6 +264,10 @@ type_check_command = ["mypy", "--output=json", "--config-file=mutmut-mypy.ini", 
 pytest_add_cli_args = [
     "--no-cov",
     "--override-ini=addopts=",
+    # --override-ini wipes addopts (incl. `-m "not atheris"`), so re-exclude the
+    # dev-only Atheris fuzz tests here: they fuzz in subprocesses and, run
+    # uninstalled, would fail every mutant.
+    "--ignore=tests/fuzz",
     "--deselect=tests/test_cli.py::test_python_dash_m_entry_point",
     "--deselect=tests/test_init.py::test_version_is_resolved",
     "--deselect=tests/test_rich.py::test_importing_cuere_does_not_import_rich_or_typer",

@@ -71,6 +71,10 @@ branches:
       allow_deletions: false
       required_conversation_resolution: true
       required_signatures: true
+      # null = no push restrictions. The Settings app silently skips the whole
+      # protection block when this key is absent; the object form is org-only,
+      # so on a personal-account repo null is the only valid value.
+      restrictions: null
 
 environments:
   - name: pypi

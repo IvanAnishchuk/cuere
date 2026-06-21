@@ -50,6 +50,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Added `restrictions: null` to the `main` branch-protection block in
+  `.github/settings.yml`. The Probot Settings app silently skips a
+  branch-protection block when the `restrictions` key is absent, so without it
+  the declared protection never applied. `null` means no push restrictions (the
+  object form is org-only, invalid on a personal-account repo).
 - Removed the dead `ci` Hypothesis profile from `tests/conftest.py` — it was
   registered (200 examples) but never selected, since nothing sets
   `HYPOTHESIS_PROFILE` and the Test workflow runs `uv run pytest` (the `dev`

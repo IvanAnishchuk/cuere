@@ -325,7 +325,7 @@ fuzz = [
 
 [package.metadata]
 requires-dist = [
-    { name = "mkdocs-typer2", extras = ["zensical"], marker = "extra == 'docs'", specifier = ">=0.3,<0.4" },
+    { name = "mkdocs-typer2", extras = ["zensical"], marker = "extra == 'docs'", specifier = ">=0.3,<0.5" },
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'docs'", specifier = ">=1,<2" },
     { name = "pillow", marker = "extra == 'image'", specifier = ">=11.0" },
     { name = "rich", specifier = ">=13.0" },
@@ -778,16 +778,16 @@ wheels = [
 
 [[package]]
 name = "mkdocs-typer2"
-version = "0.3.1"
+version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown" },
     { name = "pydantic" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/43/e4/696d83494855458b262329a1c77ac7d52442f1ecfbfb8386b700ccd16823/mkdocs_typer2-0.3.1.tar.gz", hash = "sha256:7415716a4c128da392bffcd5453bb60653b202b4e8c49050c45bb3699b5c98c3", size = 32353, upload-time = "2026-05-27T14:04:09.305Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cb/53/09beebd17749d6fa27b7ff380e8007fd1f7afcde70ac9743146ffcccb045/mkdocs_typer2-0.4.1.tar.gz", hash = "sha256:b00a68d71c8b6f9efc75005619fe1da2036ea3c24b67b9978086d69389247ada", size = 45549, upload-time = "2026-06-17T12:51:02.54Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/25/34/e0b75adb09708b514d50fdf3f12bf44ed4133dc22094943db7944910c66e/mkdocs_typer2-0.3.1-py3-none-any.whl", hash = "sha256:ed7dac5c8a1bfab4aa31a0c7a83f9ac1d53f1312c4793089ec34b686d169d7bb", size = 16437, upload-time = "2026-05-27T14:04:10.128Z" },
+    { url = "https://files.pythonhosted.org/packages/47/09/2633221fcd537b55c425950c8af23cb38d5760dc0a8b8f1bd53d38f7b5e6/mkdocs_typer2-0.4.1-py3-none-any.whl", hash = "sha256:9ecde0c020ffdf5cffd7cef3cc65906b38caaa3887c0f3b5ffbeb73b7887b34c", size = 24587, upload-time = "2026-06-17T12:51:01.557Z" },
 ]
 
 [package.optional-dependencies]

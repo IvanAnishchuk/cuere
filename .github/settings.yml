@@ -64,6 +64,12 @@ branches:
           - "Secret scan"
           - "Review dependency changes"
           - "GitHub Actions security audit"
+          # TODO(#89): the Settings app does not reliably sync this context to
+          # live branch protection — the DCO check runs on pull_request only, so
+          # it never reports on main for the app's full-PUT path to register it.
+          # Enforced out-of-band instead: a branch-protection required check (set
+          # via the API), the dco.yml PR workflow, and the local commit-msg
+          # pre-commit hook. Recheck whether the app picks it up; resolve via #89.
           - "DCO sign-off"
       enforce_admins: false  # solo maintainer keeps admin bypass (not locked out)
       required_linear_history: false  # merge commits are used for PRs
@@ -71,9 +77,11 @@ branches:
       allow_deletions: false
       required_conversation_resolution: true
       required_signatures: true
-      # null = no push restrictions. The Settings app silently skips the whole
-      # protection block when this key is absent; the object form is org-only,
-      # so on a personal-account repo null is the only valid value.
+      # restrictions (push restrictions) are an org-only feature; on a personal
+      # account `null` is the only valid value. (An earlier note here claimed the
+      # app skips the whole protection block when this key is absent — disproven:
+      # the block at 124b78b applied with no `restrictions` key. See TODO(#89)
+      # above for what the Settings app actually does and doesn't sync.)
       restrictions: null
 
 environments:

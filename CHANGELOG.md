@@ -73,6 +73,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   supply cap is now rejected (it produced a nonsensical URI before). Found by
   the Atheris fuzzing pilot. Closes #99.
 
+### Security
+
+- **DCO sign-off is now a blocking required status check on `main`**, not just a
+  declared one — closing the gap where a PR could merge without the DCO check
+  passing. It is enforced at three layers: the branch-protection required check,
+  the `dco.yml` PR workflow, and the local `commit-msg` pre-commit hook. Getting
+  the Settings app to sync the context declaratively is tracked in #89.
+
 ## [0.2.0] - 2026-06-17
 
 ### Added

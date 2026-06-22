@@ -41,7 +41,7 @@ docs = [
     # between releases, so cap to the tested minor.
     "zensical>=0.0.45,<0.1",
     # CLI reference: mkdocs-typer2's zensical-native markdown extension.
-    "mkdocs-typer2[zensical]>=0.3,<0.4",
+    "mkdocs-typer2[zensical]>=0.3,<0.5",
     # API reference: mkdocstrings python handler, configured in zensical.toml
     # under [project.plugins.mkdocstrings] (zensical has built-in support). The
     # floor tracks the 1.x line the config is validated against (the old 0.27

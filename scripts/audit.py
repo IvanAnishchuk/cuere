@@ -73,13 +73,25 @@ def _export_locked(n: int, tmp_dir: Path) -> tuple[Path, Path]:
 
     cuere does not commit requirements*.txt files; pip-audit and SBOM
     generation consume transient exports of the frozen lockfile instead.
+
+    Both scopes pass --extra image, because that extra ships to users:
+    ``pip install cuere[image]`` pulls Pillow, so a Pillow advisory is a real
+    advisory against cuere. Plain ``uv export`` emits only the default groups,
+    which left the *prod* scope reporting "no known vulnerabilities" while a
+    published install was affected. (Pillow is also in the dev group, so the
+    prod + dev scope already caught it — the gap was prod alone.)
+
+    Deliberately not --all-extras: that would sweep the ``docs`` extra's build
+    toolchain (zensical, mkdocstrings, jinja2 — 9 packages to 40) into a scope
+    labelled "prod", so an advisory against documentation tooling no installed
+    user ever receives would block the audit gate.
     """
-    step(n, "export locked dependencies (uv export --frozen)")
+    step(n, "export locked dependencies (uv export --frozen --extra image)")
     prod_req = tmp_dir / "requirements-prod.txt"
     dev_req = tmp_dir / "requirements-dev.txt"
     for label, extra_args, dest in (
-        ("prod", ["--no-dev"], prod_req),
-        ("prod + dev", [], dev_req),
+        ("prod", ["--no-dev", "--extra", "image"], prod_req),
+        ("prod + dev", ["--extra", "image"], dev_req),
     ):
         code, out = run_capture(
             [
@@ -97,7 +109,7 @@ def _export_locked(n: int, tmp_dir: Path) -> tuple[Path, Path]:
         if code != 0:
             console.print(out)
             fail(f"uv export failed for {label} dependencies")
-    ok("exported prod and prod + dev requirements from uv.lock")
+    ok("exported prod and prod + dev requirements (incl. the image extra) from uv.lock")
     return prod_req, dev_req
 
 

@@ -51,8 +51,8 @@ A malformed color raises [`ColorError`](#cuere.errors.ColorError).
 ```python
 from cuere import render
 
-render("HI", mode="ansi", dark="cyan", light="black")     # named
-render("HI", mode="ansi", dark=16, light=231)             # palette index
+render("HI", mode="ansi", dark="cyan", light="black")  # named
+render("HI", mode="ansi", dark=16, light=231)  # palette index
 render("HI", mode="ansi", dark="#00ffaa", light=(0, 0, 0))  # truecolor
 ```
 

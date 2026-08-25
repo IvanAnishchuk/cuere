@@ -23,7 +23,7 @@ chosen with `mode=` (Python) or `--mode` (CLI):
 ```python
 from cuere import show
 
-show("HELLO")                 # half
+show("HELLO")  # half
 show("HELLO", mode="block")
 show("HELLO", mode="ansi")
 ```
@@ -59,7 +59,7 @@ angle, or printed):
 ```python
 from cuere import ECLevel, show
 
-show("HELLO", error=ECLevel.Q)   # or error="Q"
+show("HELLO", error=ECLevel.Q)  # or error="Q"
 ```
 
 `boost_error` is off by default too: segno would otherwise silently raise the
@@ -93,8 +93,8 @@ code is too wide (a too-*tall* code merely scrolls and stays scannable). Soften
 that with `on_too_wide`:
 
 ```python
-show(payload, on_too_wide="warn")     # warn instead of raise
-show(payload, on_too_wide="render")   # render anyway
+show(payload, on_too_wide="warn")  # warn instead of raise
+show(payload, on_too_wide="render")  # render anyway
 ```
 
 For your own layout maths, `render_width()` / `render_height()` give the
@@ -106,7 +106,7 @@ terminal footprint (in columns / rows) for a matrix and mode.
 payloads only:
 
 ```python
-show("123", micro=True)   # a short numeric payload fits a Micro QR
+show("123", micro=True)  # a short numeric payload fits a Micro QR
 ```
 
 Micro codes carry less data and support fewer error-correction levels; an

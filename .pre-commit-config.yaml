@@ -78,7 +78,11 @@ repos:
         name: ruff format
         entry: uv run ruff format --force-exclude
         language: system
-        types_or: [python, pyi]
+        # markdown too: ruff formats python code blocks inside .md, and CI runs
+        # `ruff format --check .` over the whole repo. Without it the docs
+        # examples drift and only CI notices. (ruff check ignores markdown, so
+        # the ruff-check hook above stays python-only.)
+        types_or: [python, pyi, markdown]
         require_serial: true
 
       - id: ty-check

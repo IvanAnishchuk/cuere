@@ -7,9 +7,9 @@ a white ground; `dark` and `light` let you choose your own.
 ```python
 from cuere import show
 
-show("HELLO", mode="ansi")                                   # default: black on white
+show("HELLO", mode="ansi")  # default: black on white
 show("HELLO", mode="ansi", dark="#1a1a1a", light="#fafafa")  # soft truecolor
-show("HELLO", mode="ansi", dark="green")                     # green modules, white ground
+show("HELLO", mode="ansi", dark="green")  # green modules, white ground
 ```
 
 ## Where colors apply
@@ -20,7 +20,7 @@ terminal's own foreground/background, so they have nothing to color. Passing
 `dark` / `light` to them raises `ColorError` rather than silently doing nothing:
 
 ```python
-render("HELLO", mode="half", dark="red")   # ColorError: dark/light colors require mode 'ansi'
+render("HELLO", mode="half", dark="red")  # ColorError: dark/light colors require mode 'ansi'
 ```
 
 The two colors thread through the whole API identically:

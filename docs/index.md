@@ -50,9 +50,9 @@ and [Rich](https://github.com/Textualize/rich).
     ```python
     from cuere import render, show, fits
 
-    show("HELLO")                                   # print to stdout
+    show("HELLO")  # print to stdout
     text = render("HELLO", mode="block", invert=True)  # returns a str
-    if fits("a long payload..."):                   # fits the terminal?
+    if fits("a long payload..."):  # fits the terminal?
         show("a long payload...")
     ```
 

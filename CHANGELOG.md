@@ -76,6 +76,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `docs/` uses markdown-level autorefs, and mkdocstrings resolves its own
   cross-references independently, so the site is unchanged apart from the usage
   line rendering correctly again.
+- ruff 0.16 formats python code blocks inside markdown, so the examples in
+  `README.md` and eight docs pages are reformatted (mostly inline comments
+  losing their hand-aligned columns). The `ruff-format` pre-commit hook now
+  carries `markdown` in its `types_or`, since it was python-only and let the
+  drift through to CI, which runs `ruff format --check .` over the whole repo.
+  `ruff check` ignores markdown, so the `ruff-check` hook stays python-only.
 - Rewrote the query-string round-trip assertion in
   `tests/test_wallet.py::test_label_and_message_are_percent_encoded` as an
   explicit loop. `ty` 0.0.74 rejects `dict()` over a generator of

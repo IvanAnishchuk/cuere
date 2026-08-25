@@ -26,8 +26,8 @@ and [Rich](https://github.com/Textualize/rich).
     ```python
     from cuere import render, show
 
-    show("HELLO")                 # print the code to stdout
-    text = render("HELLO")        # or get it back as a str
+    show("HELLO")  # print the code to stdout
+    text = render("HELLO")  # or get it back as a str
     ```
 
 === "CLI"
@@ -51,7 +51,7 @@ cuere defaults to compact Unicode **half-blocks**. Two more modes are available
     ```python
     show("HELLO", mode="block")
     show("HELLO", mode="ansi")
-    show("HELLO", invert=True)    # flip dark/light for light-on-dark terminals
+    show("HELLO", invert=True)  # flip dark/light for light-on-dark terminals
     ```
 
 === "CLI"
@@ -77,7 +77,7 @@ the code stays small:
     from cuere import bitcoin_uri, optimize_uri, show
 
     uri = bitcoin_uri("bc1q...", amount=Decimal("0.01"), label="Tip")
-    show(optimize_uri(uri))       # smaller, still scannable
+    show(optimize_uri(uri))  # smaller, still scannable
     ```
 
 === "CLI"

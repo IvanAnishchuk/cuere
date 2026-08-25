@@ -57,9 +57,9 @@ uv add 'cuere[image]' # optional: adds PNG export (pulls in Pillow)
 from cuere import render, show, fits
 
 payload = "wc:7f6e504b...@2?relay-protocol=irn&symKey=587d..."
-show(payload)                                       # prints to stdout
-text = render("HELLO", mode="block", invert=True)   # returns a str
-if not fits(payload):                               # does it fit the terminal?
+show(payload)  # prints to stdout
+text = render("HELLO", mode="block", invert=True)  # returns a str
+if not fits(payload):  # does it fit the terminal?
     ...
 ```
 
@@ -87,10 +87,12 @@ returned unchanged:
 from decimal import Decimal
 from cuere import bitcoin_uri, lightning_uri, optimize_uri, show
 
-show(optimize_uri(bitcoin_uri("bc1q...")))                  # smaller, scannable code
-bitcoin_uri("bc1q...", amount=Decimal("0.01"), label="Tip") # -> "bitcoin:bc1q...?amount=0.01&label=Tip"
-optimize_uri("bitcoin:bc1q...")                             # -> "BITCOIN:BC1Q..."
-optimize_uri(lightning_uri("lnbc1..."))                     # -> "LIGHTNING:LNBC1..."
+show(optimize_uri(bitcoin_uri("bc1q...")))  # smaller, scannable code
+bitcoin_uri(
+    "bc1q...", amount=Decimal("0.01"), label="Tip"
+)  # -> "bitcoin:bc1q...?amount=0.01&label=Tip"
+optimize_uri("bitcoin:bc1q...")  # -> "BITCOIN:BC1Q..."
+optimize_uri(lightning_uri("lnbc1..."))  # -> "LIGHTNING:LNBC1..."
 ```
 
 For Ethereum, `ethereum_uri()` and `erc20_transfer_uri()` build
@@ -101,8 +103,12 @@ are case-significant, so these URIs are never passed through `optimize_uri`:
 ```python
 from cuere import erc20_transfer_uri, ethereum_uri
 
-ethereum_uri("0xfb69...d359", value=10**16, chain_id=1)         # -> "ethereum:0xfb69...d359@1?value=10000000000000000"
-erc20_transfer_uri("0xA0b8...eB48", to="0x8e23...d052", amount=1_000_000)  # -> "ethereum:0xA0b8...eB48/transfer?address=0x8e23...d052&uint256=1000000"
+ethereum_uri(
+    "0xfb69...d359", value=10**16, chain_id=1
+)  # -> "ethereum:0xfb69...d359@1?value=10000000000000000"
+erc20_transfer_uri(
+    "0xA0b8...eB48", to="0x8e23...d052", amount=1_000_000
+)  # -> "ethereum:0xA0b8...eB48/transfer?address=0x8e23...d052&uint256=1000000"
 ```
 
 See the [wallet cookbook](docs/cookbook/wallet-uris.md) for the full
@@ -118,8 +124,8 @@ Need the raw module grid (to render it yourself or inspect it)? Encode to a
 from cuere import QRMatrix
 
 m = QRMatrix.encode("HELLO", error="L", border=4)
-m.modules   # tuple[tuple[bool, ...], ...] — True is a dark module
-m.size      # side length, quiet zone included
+m.modules  # tuple[tuple[bool, ...], ...] — True is a dark module
+m.size  # side length, quiet zone included
 ```
 
 Export to a file or bytes — `save()` writes the chosen format (inferred from the
@@ -128,9 +134,9 @@ path suffix when not given), `render_bytes()` returns the raw bytes:
 ```python
 from cuere import save, render_bytes
 
-save("HELLO", "code.svg")                       # vector SVG, format from suffix
-save("bitcoin:BC1Q...", "pay.png", scale=8)     # raster PNG (needs cuere[image])
-png_bytes = render_bytes("HELLO", format="png") # -> bytes, no file
+save("HELLO", "code.svg")  # vector SVG, format from suffix
+save("bitcoin:BC1Q...", "pay.png", scale=8)  # raster PNG (needs cuere[image])
+png_bytes = render_bytes("HELLO", format="png")  # -> bytes, no file
 ```
 
 The formats are `text` (the terminal rendering), `svg`, and `png` (needs the

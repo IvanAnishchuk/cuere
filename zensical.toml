@@ -148,6 +148,8 @@ engine = "native"
 # API reference (issue #12, SPIKE): mkdocstrings python handler. zensical has
 # built-in mkdocstrings support (since v0.0.11) configured here under
 # [project.plugins.mkdocstrings.config]; the handler reads `paths` for griffe.
+[project.plugins.autorefs.config]
+enabled = false
 [project.plugins.mkdocstrings.config]
 default_handler = "python"
 [project.plugins.mkdocstrings.config.handlers.python]

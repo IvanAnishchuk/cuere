@@ -46,7 +46,7 @@ uri = bitcoin_uri(
 )
 # bitcoin:bc1q...?amount=0.005&label=Coffee&message=Order%20%231234
 
-show(uri)   # draw it in the terminal
+show(uri)  # draw it in the terminal
 ```
 
 <!-- qr: BTC_FULL -->
@@ -86,9 +86,9 @@ from cuere import WalletURIError
 
 addr = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
 
-bitcoin_uri(addr, amount="0.00000001")   # ok: exactly one satoshi
+bitcoin_uri(addr, amount="0.00000001")  # ok: exactly one satoshi
 bitcoin_uri(addr, amount="0.000000001")  # WalletURIError: sub-satoshi (9 dp)
-bitcoin_uri("bad address!")              # WalletURIError: bad address
+bitcoin_uri("bad address!")  # WalletURIError: bad address
 ```
 
 For the underlying format see the [BIP-21 summary](../bip-21.md).
@@ -106,7 +106,7 @@ from cuere import lightning_uri, show
 uri = lightning_uri("lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqf")
 # lightning:lnbc1pvjluez...
 
-show(uri)   # draw it in the terminal
+show(uri)  # draw it in the terminal
 ```
 
 <!-- qr: LN -->
@@ -154,12 +154,12 @@ from cuere import ethereum_uri, show
 ONE_ETH = 10**18
 uri = ethereum_uri(
     "0xfb6916095ca1df60bb79Ce92ce3ea74c37c5d359",
-    value=ONE_ETH // 100,   # 0.01 ETH, expressed in wei
-    chain_id=1,             # EIP-155 mainnet
+    value=ONE_ETH // 100,  # 0.01 ETH, expressed in wei
+    chain_id=1,  # EIP-155 mainnet
 )
 # ethereum:0xfb69...d359@1?value=10000000000000000
 
-show(uri)   # draw it in the terminal
+show(uri)  # draw it in the terminal
 ```
 
 <!-- qr: ETH -->
@@ -206,7 +206,7 @@ from cuere import erc20_transfer_uri, show
 uri = erc20_transfer_uri(
     "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",  # USDC contract
     to="0x8e23ee67d1332ad560396262c48ffbb01f93d052",
-    amount=1_000_000,                               # 1 USDC = 10**6 base units
+    amount=1_000_000,  # 1 USDC = 10**6 base units
     chain_id=1,
 )
 # ethereum:0xA0b8...eB48@1/transfer?address=0x8e23...d052&uint256=1000000
@@ -260,8 +260,8 @@ from cuere import scheme_case, show
 # Straight from your WalletConnect client (topic and symKey shortened here):
 pairing = "wc:c9e6f7a1@2?relay-protocol=irn&symKey=0123abcd"
 
-show(pairing)             # render it exactly as issued
-scheme_case(pairing)      # SchemeCase.SIGNIFICANT
+show(pairing)  # render it exactly as issued
+scheme_case(pairing)  # SchemeCase.SIGNIFICANT
 ```
 
 <!-- qr: WC -->
@@ -349,11 +349,11 @@ unchanged, so passing *any* URI through it is always safe.
 ```python
 from cuere import SchemeCase, scheme_case
 
-scheme_case("bitcoin:bc1q...")     # SchemeCase.INSENSITIVE  -> optimize_uri may uppercase
+scheme_case("bitcoin:bc1q...")  # SchemeCase.INSENSITIVE  -> optimize_uri may uppercase
 scheme_case("lightning:lnbc1...")  # SchemeCase.INSENSITIVE
-scheme_case("ethereum:0xAbC...")   # SchemeCase.SIGNIFICANT  -> EIP-55 case matters; left as-is
-scheme_case("wc:topic@2?...")      # SchemeCase.SIGNIFICANT  -> WalletConnect key; left as-is
-scheme_case("mailto:hi")           # SchemeCase.UNKNOWN      -> not recognized; left as-is
+scheme_case("ethereum:0xAbC...")  # SchemeCase.SIGNIFICANT  -> EIP-55 case matters; left as-is
+scheme_case("wc:topic@2?...")  # SchemeCase.SIGNIFICANT  -> WalletConnect key; left as-is
+scheme_case("mailto:hi")  # SchemeCase.UNKNOWN      -> not recognized; left as-is
 ```
 
 Only `SchemeCase.INSENSITIVE` URIs are candidates, and even those are returned

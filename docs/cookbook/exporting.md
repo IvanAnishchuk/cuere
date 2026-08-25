@@ -13,8 +13,8 @@ extra arguments:
 ```python
 from cuere import save
 
-save("bitcoin:BC1Q...", "invoice.svg")            # vector, infinite resolution
-save("bitcoin:BC1Q...", "invoice.png", scale=8)   # 8 pixels per module
+save("bitcoin:BC1Q...", "invoice.svg")  # vector, infinite resolution
+save("bitcoin:BC1Q...", "invoice.png", scale=8)  # 8 pixels per module
 ```
 
 `scale` is pixels-per-module for the image formats (SVG scales its `width` /
@@ -26,9 +26,9 @@ from io import BytesIO
 
 from cuere import save
 
-save("HELLO", "code.dat", format="svg")   # suffix says nothing; be explicit
+save("HELLO", "code.dat", format="svg")  # suffix says nothing; be explicit
 buffer = BytesIO()
-save("HELLO", buffer, format="png")       # a stream always needs format=
+save("HELLO", buffer, format="png")  # a stream always needs format=
 ```
 
 Need the bytes without touching the filesystem (to attach, upload, or embed)?
@@ -37,7 +37,7 @@ Need the bytes without touching the filesystem (to attach, upload, or embed)?
 ```python
 from cuere import render_bytes
 
-svg = render_bytes("HELLO", format="svg")            # -> bytes (UTF-8 SVG)
+svg = render_bytes("HELLO", format="svg")  # -> bytes (UTF-8 SVG)
 png = render_bytes("HELLO", format="png", scale=10)  # -> bytes (PNG image)
 ```
 
@@ -61,8 +61,8 @@ unrecognized format name raises `UnknownFormatError`:
 from cuere import MissingDependencyError, UnknownFormatError, render_bytes
 
 try:
-    render_bytes("HELLO", format="png")     # MissingDependencyError if Pillow absent
-    render_bytes("HELLO", format="jpeg")    # UnknownFormatError: not a known format
+    render_bytes("HELLO", format="png")  # MissingDependencyError if Pillow absent
+    render_bytes("HELLO", format="jpeg")  # UnknownFormatError: not a known format
 except (MissingDependencyError, UnknownFormatError) as exc:
     print(exc)
 ```

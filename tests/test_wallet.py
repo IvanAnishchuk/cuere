@@ -204,7 +204,10 @@ def test_label_and_message_are_percent_encoded() -> None:
     )
     # And the encoding is reversible back to the original free text.
     query = uri.partition("?")[2]
-    parts = dict(pair.split("=", 1) for pair in query.split("&"))
+    parts: dict[str, str] = {}
+    for pair in query.split("&"):
+        key, value = pair.split("=", 1)
+        parts[key] = value
     assert unquote(parts["label"]) == "Coffee & Cake"
     assert unquote(parts["message"]) == "50% off = win"
 

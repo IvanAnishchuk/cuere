@@ -17,8 +17,8 @@ the bytes, then writes them. Everything `render_bytes` accepts, `save` accepts.
 ```python
 from cuere import render_bytes, save
 
-data = render_bytes("HELLO", format="svg")   # -> bytes
-save("HELLO", "code.svg")                     # writes the same bytes to a file
+data = render_bytes("HELLO", format="svg")  # -> bytes
+save("HELLO", "code.svg")  # writes the same bytes to a file
 ```
 
 Both take a payload (`str` / `bytes` / a pre-built `QRMatrix`) and forward the
@@ -53,7 +53,7 @@ For the image formats, `scale` is the number of pixels per QR module (default
 ignore `mode`.
 
 ```python
-render_bytes("HELLO", format="png", scale=4)   # 4 px per module
+render_bytes("HELLO", format="png", scale=4)  # 4 px per module
 ```
 
 ## Choosing the destination (`save`)
@@ -63,8 +63,8 @@ render_bytes("HELLO", format="png", scale=4)   # 4 px per module
 ```python
 from io import BytesIO
 
-save("HELLO", "code.png")          # a path (str or os.PathLike)
-save("HELLO", BytesIO(), format="png")   # a binary stream (SupportsWriteBytes)
+save("HELLO", "code.png")  # a path (str or os.PathLike)
+save("HELLO", BytesIO(), format="png")  # a binary stream (SupportsWriteBytes)
 ```
 
 When `format` is omitted it is inferred from the path suffix:

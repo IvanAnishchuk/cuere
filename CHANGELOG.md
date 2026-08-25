@@ -59,6 +59,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   registered (200 examples) but never selected, since nothing sets
   `HYPOTHESIS_PROFILE` and the Test workflow runs `uv run pytest` (the `dev`
   profile). The real wide/nightly profile is tracked in #97.
+- **Swept every dependency forward** (`uv lock --upgrade`, 45 packages) and
+  bumped the pinned action SHAs across all 15 workflows. Notable majors:
+  `setup-uv` v8 → v9 (only breaking change is `prune-cache` now defaulting to
+  `false`), `python-coverage-comment-action` v3 → v4 (commits via
+  `GITHUB_TOKEN` rather than checkout credentials — already how
+  `coverage-comment.yml` was written), and `pymdown-extensions` 10 → 11.
+  Supersedes Dependabot PRs #121, #130, #137, #139, #140 and #142, all of which
+  a fresh resolve strictly dominates.
+- Disabled the autorefs **plugin** in `zensical.toml`
+  (`[project.plugins.autorefs.config] enabled = false`), which is what stops
+  zensical registering its autorefs *markdown extension*. zensical 0.0.57
+  auto-enables it whenever the mkdocstrings plugin is configured, which starts
+  parsing the generated CLI usage string `` `cuere [OPTIONS] [data]` `` as a
+  markdown reference link and fails `zensical build --strict`. Nothing in
+  `docs/` uses markdown-level autorefs, and mkdocstrings resolves its own
+  cross-references independently, so the site is unchanged apart from the usage
+  line rendering correctly again.
+- ruff 0.16 formats python code blocks inside markdown, so the examples in
+  `README.md` and eight docs pages are reformatted (mostly inline comments
+  losing their hand-aligned columns). The `ruff-format` pre-commit hook now
+  carries `markdown` in its `types_or`, since it was python-only and let the
+  drift through to CI, which runs `ruff format --check .` over the whole repo.
+  `ruff check` ignores markdown, so the `ruff-check` hook stays python-only.
+- Rewrote the query-string round-trip assertion in
+  `tests/test_wallet.py::test_label_and_message_are_percent_encoded` as an
+  explicit loop. `ty` 0.0.74 rejects `dict()` over a generator of
+  `list[str]`, which mypy and basedpyright both accept; the loop is equivalent
+  and needs no ignore.
 
 ### Fixed
 
@@ -75,6 +103,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **Cleared every open advisory** via the dependency sweep: Pillow 12.2.0 →
+  12.3.0 (20 `PYSEC-2026-*`, mostly denial-of-service in the BDF/PCF/GD/TGA/EPS
+  parsers), pip 26.1.2 → 26.2.1 (`PYSEC-2026-3721`, wheel path traversal), and
+  pymdown-extensions 10.21.3 → 11.0.2 (`GHSA-9xwg-3r6f-jcx2`,
+  `GHSA-gm37-52c6-37mw`). That closes all 15 open Dependabot alerts (11 high, 4
+  moderate). Note GitHub scopes the Pillow ones **runtime**, not dev — the
+  `image` extra is a published install path, which is the same reason the audit
+  scope below was wrong.
+- **The `docs` extra was audited nowhere.** pymdown-extensions arrives
+  transitively under the `docs` extra, which neither audit scope exported, so
+  `pip-audit` never saw those two advisories even though Dependabot did. The
+  prod + dev scope now exports `--all-extras`, so contributor-installed tooling
+  is covered.
+- **The prod dependency audit now covers the `image` extra.**
+  `scripts/audit.py` exported the prod scope with a bare `--no-dev`, which omits
+  optional extras — so Pillow, which `pip install cuere[image]` pulls in, was
+  never in the scope the audit calls "prod". A Pillow advisory would print "ok
+  No known vulnerabilities in prod dependencies" while a published install path
+  was affected. Prod now passes `--extra image` (9 → 10 packages), and
+  `release.yml`'s attested SBOM export matches. Prod is deliberately *not*
+  `--all-extras`: that pulls the `docs` build toolchain into a scope labelled
+  prod (40 packages), so a zensical or jinja2 advisory would block the gate for
+  tooling no installed user receives. The prod + dev scope carries
+  `--all-extras` instead, which is where docs tooling belongs.
 - **DCO sign-off is now a blocking required status check on `main`**, not just a
   declared one — closing the gap where a PR could merge without the DCO check
   passing. It is enforced at three layers: the branch-protection required check,

@@ -97,21 +97,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- **Cleared 21 advisories in the dev toolchain** via the dependency sweep:
-  Pillow 12.2.0 → 12.3.0 (20 `PYSEC-2026-*` advisories, mostly denial-of-service
-  in the BDF/PCF/GD/TGA/EPS parsers) and pip 26.1.2 → 26.2.1
-  (`PYSEC-2026-3721`, wheel path traversal). Neither reached the published
-  runtime dependencies.
+- **Cleared every open advisory** via the dependency sweep: Pillow 12.2.0 →
+  12.3.0 (20 `PYSEC-2026-*`, mostly denial-of-service in the BDF/PCF/GD/TGA/EPS
+  parsers), pip 26.1.2 → 26.2.1 (`PYSEC-2026-3721`, wheel path traversal), and
+  pymdown-extensions 10.21.3 → 11.0.2 (`GHSA-9xwg-3r6f-jcx2`,
+  `GHSA-gm37-52c6-37mw`). That closes all 15 open Dependabot alerts (11 high, 4
+  moderate). Note GitHub scopes the Pillow ones **runtime**, not dev — the
+  `image` extra is a published install path, which is the same reason the audit
+  scope below was wrong.
+- **The `docs` extra was audited nowhere.** pymdown-extensions arrives
+  transitively under the `docs` extra, which neither audit scope exported, so
+  `pip-audit` never saw those two advisories even though Dependabot did. The
+  prod + dev scope now exports `--all-extras`, so contributor-installed tooling
+  is covered.
 - **The prod dependency audit now covers the `image` extra.**
   `scripts/audit.py` exported the prod scope with a bare `--no-dev`, which omits
   optional extras — so Pillow, which `pip install cuere[image]` pulls in, was
   never in the scope the audit calls "prod". A Pillow advisory would print "ok
   No known vulnerabilities in prod dependencies" while a published install path
-  was affected. Both scopes now pass `--extra image` (9 → 10 packages in prod),
-  and `release.yml`'s attested SBOM export matches. Deliberately *not*
+  was affected. Prod now passes `--extra image` (9 → 10 packages), and
+  `release.yml`'s attested SBOM export matches. Prod is deliberately *not*
   `--all-extras`: that pulls the `docs` build toolchain into a scope labelled
   prod (40 packages), so a zensical or jinja2 advisory would block the gate for
-  tooling no installed user receives.
+  tooling no installed user receives. The prod + dev scope carries
+  `--all-extras` instead, which is where docs tooling belongs.
 - **DCO sign-off is now a blocking required status check on `main`**, not just a
   declared one — closing the gap where a PR could merge without the DCO check
   passing. It is enforced at three layers: the branch-protection required check,
